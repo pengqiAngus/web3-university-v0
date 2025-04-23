@@ -1,190 +1,274 @@
-"use client"
+"use client";
 
-import type React from "react"
+import type React from "react";
 
-import { useState, useRef } from "react"
-import { useRouter } from "next/navigation"
-import Navbar from "@/components/navbar"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
-import { Label } from "@/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { useToast } from "@/hooks/use-toast"
-import { useWeb3 } from "@/lib/web3-context"
-import { motion } from "framer-motion"
-import { X, ImageIcon, Video, Loader2, Info } from "lucide-react"
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
-import { Alert, AlertDescription } from "@/components/ui/alert"
+import { useState, useRef } from "react";
+import { useRouter } from "next/navigation";
+import Navbar from "@/components/navbar";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { useToast } from "@/hooks/use-toast";
+import { useWeb3 } from "@/lib/web3-context";
+import { motion } from "framer-motion";
+import { X, ImageIcon, Video, Loader2, Info } from "lucide-react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { apiFetch, uploadFile } from "@/lib/api";
 
 export default function UploadCoursePage() {
-  const { address, connectWallet } = useWeb3()
-  const router = useRouter()
-  const { toast } = useToast()
+  const { address, connectWallet } = useWeb3();
+  const router = useRouter();
+  const { toast } = useToast();
 
   // Form state
-  const [courseName, setCourseName] = useState("")
-  const [description, setDescription] = useState("")
-  const [price, setPrice] = useState("")
-  const [level, setLevel] = useState("beginner")
-  const [duration, setDuration] = useState("")
-  const [courseImage, setCourseImage] = useState<string | null>(null)
-  const [courseVideo, setCourseVideo] = useState<string | null>(null)
-  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [courseName, setCourseName] = useState("");
+  const [description, setDescription] = useState("");
+  const [price, setPrice] = useState("");
+  const [level, setLevel] = useState("beginner");
+  const [duration, setDuration] = useState("");
+  const [courseImage, setCourseImage] = useState<string | null>(null);
+  const [courseVideo, setCourseVideo] = useState<string | null>(null);
+  const [courseImageId, setCourseImageId] = useState<string | null>(null);
+  const [courseVideoId, setCourseVideoId] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
 
   // File input refs
-  const imageInputRef = useRef<HTMLInputElement>(null)
-  const videoInputRef = useRef<HTMLInputElement>(null)
+  const imageInputRef = useRef<HTMLInputElement>(null);
+  const videoInputRef = useRef<HTMLInputElement>(null);
 
   // Validation state
   const [errors, setErrors] = useState<{
-    name?: string
-    description?: string
-    price?: string
-    duration?: string
-    image?: string
-    video?: string
-  }>({})
+    name?: string;
+    description?: string;
+    price?: string;
+    duration?: string;
+    image?: string;
+    video?: string;
+  }>({});
 
   // Handle image upload
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
+  const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
     if (file) {
       if (file.size > 5 * 1024 * 1024) {
-        setErrors({ ...errors, image: "Image must be less than 5MB" })
-        return
+        setErrors({ ...errors, image: "图片大小不能超过 5MB" });
+        return;
       }
 
-      const reader = new FileReader()
-      reader.onload = (event) => {
-        if (event.target?.result) {
-          setCourseImage(event.target.result as string)
-          setErrors({ ...errors, image: undefined })
-        }
+      try {
+        setIsUploading(true);
+        // 读取文件预览
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          if (event.target?.result) {
+            setCourseImage(event.target.result as string);
+          }
+        };
+        reader.readAsDataURL(file);
+
+        // 上传文件到服务器
+        const fileId = await uploadFile(file);
+        setCourseImageId(fileId);
+        setErrors({ ...errors, image: undefined });
+        toast({
+          title: "上传成功",
+          description: "图片上传成功",
+        });
+      } catch (error) {
+        setErrors({ ...errors, image: "图片上传失败，请重试" });
+        toast({
+          title: "上传失败",
+          description: "图片上传失败，请重试",
+          variant: "destructive",
+        });
+      } finally {
+        setIsUploading(false);
       }
-      reader.readAsDataURL(file)
     }
-  }
+  };
 
   // Handle video upload
-  const handleVideoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
+  const handleVideoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
     if (file) {
       if (file.size > 100 * 1024 * 1024) {
-        setErrors({ ...errors, video: "Video must be less than 100MB" })
-        return
+        setErrors({ ...errors, video: "视频大小不能超过 100MB" });
+        return;
       }
 
-      const reader = new FileReader()
-      reader.onload = (event) => {
-        if (event.target?.result) {
-          setCourseVideo(event.target.result as string)
-          setErrors({ ...errors, video: undefined })
-        }
+      try {
+        setIsUploading(true);
+        // 读取文件预览
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          if (event.target?.result) {
+            setCourseVideo(event.target.result as string);
+          }
+        };
+        reader.readAsDataURL(file);
+
+        // 上传文件到服务器
+        const fileId = await uploadFile(file);
+        setCourseVideoId(fileId);
+        setErrors({ ...errors, video: undefined });
+        toast({
+          title: "上传成功",
+          description: "视频上传成功",
+        });
+      } catch (error) {
+        setErrors({ ...errors, video: "视频上传失败，请重试" });
+        toast({
+          title: "上传失败",
+          description: "视频上传失败，请重试",
+          variant: "destructive",
+        });
+      } finally {
+        setIsUploading(false);
       }
-      reader.readAsDataURL(file)
     }
-  }
+  };
 
   // Remove uploaded image
   const removeImage = () => {
-    setCourseImage(null)
+    setCourseImage(null);
+    setCourseImageId(null);
     if (imageInputRef.current) {
-      imageInputRef.current.value = ""
+      imageInputRef.current.value = "";
     }
-  }
+  };
 
   // Remove uploaded video
   const removeVideo = () => {
-    setCourseVideo(null)
+    setCourseVideo(null);
+    setCourseVideoId(null);
     if (videoInputRef.current) {
-      videoInputRef.current.value = ""
+      videoInputRef.current.value = "";
     }
-  }
+  };
 
   // Validate form
   const validateForm = () => {
     const newErrors: {
-      name?: string
-      description?: string
-      price?: string
-      duration?: string
-      image?: string
-      video?: string
-    } = {}
+      name?: string;
+      description?: string;
+      price?: string;
+      duration?: string;
+      image?: string;
+      video?: string;
+    } = {};
 
     if (!courseName.trim()) {
-      newErrors.name = "Course name is required"
+      newErrors.name = "课程名称不能为空";
     }
 
     if (!description.trim()) {
-      newErrors.description = "Description is required"
+      newErrors.description = "课程描述不能为空";
     } else if (description.length < 50) {
-      newErrors.description = "Description must be at least 50 characters"
+      newErrors.description = "课程描述至少需要 50 个字符";
     }
 
     if (!price.trim()) {
-      newErrors.price = "Price is required"
+      newErrors.price = "价格不能为空";
     } else if (isNaN(Number(price)) || Number(price) <= 0) {
-      newErrors.price = "Price must be a positive number"
+      newErrors.price = "价格必须大于 0";
     }
 
     if (!duration.trim()) {
-      newErrors.duration = "Duration is required"
+      newErrors.duration = "课程时长不能为空";
     } else if (isNaN(Number(duration)) || Number(duration) <= 0) {
-      newErrors.duration = "Duration must be a positive number"
+      newErrors.duration = "课程时长必须大于 0";
     }
 
-    if (!courseImage) {
-      newErrors.image = "Course image is required"
+    if (!courseImageId) {
+      newErrors.image = "请上传课程封面";
     }
 
-    if (!courseVideo) {
-      newErrors.video = "Course video is required"
+    if (!courseVideoId) {
+      newErrors.video = "请上传课程视频";
     }
 
-    setErrors(newErrors)
-    return Object.keys(newErrors).length === 0
-  }
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
   // Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
 
     if (!validateForm()) {
       toast({
-        title: "Validation Error",
-        description: "Please fix the errors in the form",
+        title: "验证错误",
+        description: "请修复表单中的错误",
         variant: "destructive",
-      })
-      return
+      });
+      return;
     }
 
-    setIsSubmitting(true)
+    setIsSubmitting(true);
 
     try {
-      // Simulate API call with a timeout
-      await new Promise((resolve) => setTimeout(resolve, 2000))
+      const formData = {
+        title: courseName,
+        description,
+        price: Number(price),
+        level,
+        icon: "",
+        tags: null,
+        duration: Number(duration),
+        imageId: courseImageId,
+        videoId: courseVideoId,
+      };
+
+      const response = await apiFetch("/api/courses/confrim", {
+        method: "POST",
+        body: JSON.stringify(formData),
+      });
+
+      if (response.error) {
+        throw new Error(response.error);
+      }
 
       toast({
-        title: "Course Uploaded Successfully",
-        description: "Your course has been submitted for review",
-      })
+        title: "课程上传成功",
+        description: "您的课程已提交审核",
+      });
 
-      // Redirect to courses page after successful submission
-      router.push("/courses")
+      // 提交成功后跳转到课程列表页
+      router.push("/courses");
     } catch (error) {
-      console.error("Error submitting course:", error)
+      console.error("提交课程失败:", error);
       toast({
-        title: "Upload Failed",
-        description: "There was an error uploading your course. Please try again.",
+        title: "上传失败",
+        description: "上传课程时发生错误，请重试",
         variant: "destructive",
-      })
+      });
     } finally {
-      setIsSubmitting(false)
+      setIsSubmitting(false);
     }
-  }
+  };
 
   return (
     <main className="min-h-screen bg-black relative overflow-hidden">
@@ -209,7 +293,9 @@ export default function UploadCoursePage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
           >
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-600">Upload</span>{" "}
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-600">
+              Upload
+            </span>{" "}
             New Course
           </motion.h1>
 
@@ -228,7 +314,10 @@ export default function UploadCoursePage() {
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="pb-6">
-                  <Button onClick={connectWallet} className="bg-purple-600 hover:bg-purple-700">
+                  <Button
+                    onClick={connectWallet}
+                    className="bg-purple-600 hover:bg-purple-700"
+                  >
                     Connect Wallet
                   </Button>
                 </CardContent>
@@ -244,7 +333,9 @@ export default function UploadCoursePage() {
               <Card className="bg-black/80 border border-purple-500/20 backdrop-blur-sm text-white">
                 <CardHeader>
                   <CardTitle>Course Information</CardTitle>
-                  <CardDescription className="text-gray-400">Fill in the details about your new course</CardDescription>
+                  <CardDescription className="text-gray-400">
+                    Fill in the details about your new course
+                  </CardDescription>
                 </CardHeader>
                 <CardContent>
                   <form onSubmit={handleSubmit} className="space-y-6">
@@ -256,10 +347,14 @@ export default function UploadCoursePage() {
                         id="courseName"
                         value={courseName}
                         onChange={(e) => setCourseName(e.target.value)}
-                        className={`bg-black/50 border-purple-500/30 text-white ${errors.name ? "border-red-500" : ""}`}
+                        className={`bg-black/50 border-purple-500/30 text-white ${
+                          errors.name ? "border-red-500" : ""
+                        }`}
                         placeholder="e.g. Blockchain Fundamentals"
                       />
-                      {errors.name && <p className="text-red-500 text-sm">{errors.name}</p>}
+                      {errors.name && (
+                        <p className="text-red-500 text-sm">{errors.name}</p>
+                      )}
                     </div>
 
                     <div className="space-y-2">
@@ -275,7 +370,11 @@ export default function UploadCoursePage() {
                         }`}
                         placeholder="Provide a detailed description of your course"
                       />
-                      {errors.description && <p className="text-red-500 text-sm">{errors.description}</p>}
+                      {errors.description && (
+                        <p className="text-red-500 text-sm">
+                          {errors.description}
+                        </p>
+                      )}
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -289,14 +388,18 @@ export default function UploadCoursePage() {
                             type="number"
                             value={price}
                             onChange={(e) => setPrice(e.target.value)}
-                            className={`bg-black/50 border-purple-500/30 text-white pl-10 ${
+                            className={`bg-black/50 border-purple-500/30 text-white pl-12 ${
                               errors.price ? "border-red-500" : ""
                             }`}
                             placeholder="e.g. 100"
                           />
-                          <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-purple-400">YDT</div>
+                          <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-purple-400">
+                            YDT
+                          </div>
                         </div>
-                        {errors.price && <p className="text-red-500 text-sm">{errors.price}</p>}
+                        {errors.price && (
+                          <p className="text-red-500 text-sm">{errors.price}</p>
+                        )}
                       </div>
 
                       <div className="space-y-2">
@@ -309,16 +412,21 @@ export default function UploadCoursePage() {
                           </SelectTrigger>
                           <SelectContent className="bg-black/90 border-purple-500/30 text-white">
                             <SelectItem value="beginner">Beginner</SelectItem>
-                            <SelectItem value="intermediate">Intermediate</SelectItem>
+                            <SelectItem value="intermediate">
+                              Intermediate
+                            </SelectItem>
                             <SelectItem value="advanced">Advanced</SelectItem>
-                            <SelectItem value="all-levels">All Levels</SelectItem>
+                            <SelectItem value="all-levels">
+                              All Levels
+                            </SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
 
                       <div className="space-y-2">
                         <Label htmlFor="duration">
-                          Duration (hours) <span className="text-red-500">*</span>
+                          Duration (hours){" "}
+                          <span className="text-red-500">*</span>
                         </Label>
                         <Input
                           id="duration"
@@ -330,7 +438,11 @@ export default function UploadCoursePage() {
                           }`}
                           placeholder="e.g. 4"
                         />
-                        {errors.duration && <p className="text-red-500 text-sm">{errors.duration}</p>}
+                        {errors.duration && (
+                          <p className="text-red-500 text-sm">
+                            {errors.duration}
+                          </p>
+                        )}
                       </div>
                     </div>
 
@@ -363,14 +475,20 @@ export default function UploadCoursePage() {
                       {!courseImage ? (
                         <div
                           className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer hover:border-purple-500/50 transition-colors ${
-                            errors.image ? "border-red-500" : "border-purple-500/30"
+                            errors.image
+                              ? "border-red-500"
+                              : "border-purple-500/30"
                           }`}
                           onClick={() => imageInputRef.current?.click()}
                         >
                           <div className="flex flex-col items-center">
                             <ImageIcon className="h-12 w-12 text-purple-500/50 mb-4" />
-                            <p className="text-gray-400 mb-2">Click to upload course thumbnail</p>
-                            <p className="text-gray-500 text-sm">PNG, JPG or WEBP (max. 5MB)</p>
+                            <p className="text-gray-400 mb-2">
+                              Click to upload course thumbnail
+                            </p>
+                            <p className="text-gray-500 text-sm">
+                              PNG, JPG or WEBP (max. 5MB)
+                            </p>
                           </div>
                         </div>
                       ) : (
@@ -391,7 +509,9 @@ export default function UploadCoursePage() {
                           </Button>
                         </div>
                       )}
-                      {errors.image && <p className="text-red-500 text-sm">{errors.image}</p>}
+                      {errors.image && (
+                        <p className="text-red-500 text-sm">{errors.image}</p>
+                      )}
                     </div>
 
                     <div className="space-y-2">
@@ -423,19 +543,29 @@ export default function UploadCoursePage() {
                       {!courseVideo ? (
                         <div
                           className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer hover:border-purple-500/50 transition-colors ${
-                            errors.video ? "border-red-500" : "border-purple-500/30"
+                            errors.video
+                              ? "border-red-500"
+                              : "border-purple-500/30"
                           }`}
                           onClick={() => videoInputRef.current?.click()}
                         >
                           <div className="flex flex-col items-center">
                             <Video className="h-12 w-12 text-purple-500/50 mb-4" />
-                            <p className="text-gray-400 mb-2">Click to upload course video</p>
-                            <p className="text-gray-500 text-sm">MP4 or WebM (max. 100MB)</p>
+                            <p className="text-gray-400 mb-2">
+                              Click to upload course video
+                            </p>
+                            <p className="text-gray-500 text-sm">
+                              MP4 or WebM (max. 100MB)
+                            </p>
                           </div>
                         </div>
                       ) : (
                         <div className="relative rounded-lg overflow-hidden border border-purple-500/30">
-                          <video src={courseVideo} controls className="w-full h-48 object-cover bg-black" />
+                          <video
+                            src={courseVideo}
+                            controls
+                            className="w-full h-48 object-cover bg-black"
+                          />
                           <Button
                             type="button"
                             variant="destructive"
@@ -447,13 +577,16 @@ export default function UploadCoursePage() {
                           </Button>
                         </div>
                       )}
-                      {errors.video && <p className="text-red-500 text-sm">{errors.video}</p>}
+                      {errors.video && (
+                        <p className="text-red-500 text-sm">{errors.video}</p>
+                      )}
                     </div>
 
                     <Alert className="bg-purple-900/20 border-purple-500/30">
                       <AlertDescription className="text-gray-300">
-                        By uploading this course, you agree to our terms and conditions. Your course will be reviewed
-                        before being published.
+                        By uploading this course, you agree to our terms and
+                        conditions. Your course will be reviewed before being
+                        published.
                       </AlertDescription>
                     </Alert>
 
@@ -484,5 +617,5 @@ export default function UploadCoursePage() {
         </div>
       </div>
     </main>
-  )
+  );
 }

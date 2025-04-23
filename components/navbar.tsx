@@ -1,11 +1,11 @@
-"use client"
+"use client";
 
-import { Button } from "@/components/ui/button"
-import { Bot, Menu } from "lucide-react"
-import { motion } from "framer-motion"
-import Link from "next/link"
-import type React from "react" // Added import for React
-import { ConnectWallet } from "@/components/connect-wallet"
+import { Button } from "@/components/ui/button";
+import { Bot, Menu } from "lucide-react";
+import { motion } from "framer-motion";
+import Link from "next/link";
+import type React from "react"; // Added import for React
+import { ConnectWallet } from "@/components/connect-wallet";
 
 export default function Navbar() {
   return (
@@ -22,7 +22,7 @@ export default function Navbar() {
       <div className="hidden md:flex items-center space-x-8">
         <NavLink href="/courses">Courses</NavLink>
         <NavLink href="/swap">Token Swap</NavLink>
-        <NavLink href="/profile">Profile</NavLink>
+        <NavLink href="/upload-course">Upload Course</NavLink>
       </div>
 
       <div className="hidden md:flex items-center space-x-4">
@@ -33,14 +33,23 @@ export default function Navbar() {
         <Menu className="w-6 h-6" />
       </Button>
     </motion.nav>
-  )
+  );
 }
 
-function NavLink({ href, children }: { href: string; children: React.ReactNode }) {
+function NavLink({
+  href,
+  children,
+}: {
+  href: string;
+  children: React.ReactNode;
+}) {
   return (
-    <Link href={href} className="text-gray-300 hover:text-white transition-colors relative group">
+    <Link
+      href={href}
+      className="text-gray-300 hover:text-white transition-colors relative group"
+    >
       {children}
       <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-purple-500 transition-all group-hover:w-full" />
     </Link>
-  )
+  );
 }
