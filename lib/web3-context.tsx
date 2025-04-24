@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useState, type ReactNode } from "react";
+import { createContext, useContext, useState, useEffect, type ReactNode } from "react";
 import {
   getDefaultConfig,
   RainbowKitProvider,
@@ -12,10 +12,12 @@ import {
   walletConnectWallet,
   rainbowWallet,
 } from "@rainbow-me/rainbowkit/wallets";
-import { WagmiProvider, useAccount, useBalance, useContractRead } from "wagmi";
+import { WagmiProvider, useAccount, useBalance } from "wagmi";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { mainnet, sepolia } from "wagmi/chains";
-import { YIDENG_TOKEN_ADDRESS, YIDENG_TOKEN_ABI } from "@/lib/utils";
+import { ethers } from "ethers";
+import { YiDengToken__factory } from '@/typechain-types';
+import { CourseMarket__factory } from '@/typechain-types';
 
 const queryClient = new QueryClient();
 
@@ -29,18 +31,25 @@ const connectors = connectorsForWallets(
     },
   ],
   {
-    appName: "Web3 University",
+    appName: " Video Content Creation",
     projectId,
   }
 );
 
 const config = getDefaultConfig({
-  appName: "Web3 University",
+  appName: " Video Content Creation",
   projectId,
   chains: [mainnet, sepolia],
-  connectors,
+  wallets: [
+    {
+      groupName: "Recommended",
+      wallets: [metaMaskWallet, rainbowWallet, walletConnectWallet],
+    },
+  ],
 });
 
+const COURSE_MARKET_ADDRESS = "0x5DA45119233433327cD77D66EfCdA92edE57Ce78";
+const YIDENG_TOKEN_ADDRESS = "0xb26BA51DAcc2F8e59CB87ECCD2eC73a2C3540d6f";
 interface Web3ContextType {
   address: string | null;
   balance: string;
@@ -54,6 +63,10 @@ interface Web3ContextType {
     newAvatar?: string
   ) => void;
   isConnected: boolean;
+  ydContract: ethers.Contract | null;
+  courseContract: ethers.Contract | null;
+  provider: ethers.providers.Web3Provider | null;
+  signer: ethers.Signer | null;
 }
 
 const defaultContext: Web3ContextType = {
@@ -65,6 +78,10 @@ const defaultContext: Web3ContextType = {
   avatar: "",
   updateProfile: () => {},
   isConnected: false,
+  ydContract: null,
+  courseContract: null,
+  provider: null,
+  signer: null,
 };
 
 const Web3Context = createContext<Web3ContextType>(defaultContext);
@@ -76,16 +93,62 @@ const Web3ProviderContent = ({ children }: { children: ReactNode }) => {
   const { data: balanceData } = useBalance({
     address,
   });
-  const { data: tokenBalanceData } = useContractRead({
-    address: YIDENG_TOKEN_ADDRESS,
-    abi: YIDENG_TOKEN_ABI,
-    functionName: "balanceOf",
-    args: [address],
-  });
-
+  
   const [username, setUsername] = useState("Web3 User");
   const [profile, setProfile] = useState("I'm new to Web3 learning!");
   const [avatar, setAvatar] = useState("");
+  const [ydContract, setYdContract] = useState<ethers.Contract | null>(null);
+  const [courseContract, setCourseContract] = useState<ethers.Contract | null>(null);
+  const [provider, setProvider] = useState<ethers.providers.Web3Provider | null>(null);
+  const [signer, setSigner] = useState<ethers.Signer | null>(null);
+  const [tokenBalance, setTokenBalance] = useState("0");
+
+  useEffect(() => {
+    const initContracts = async () => {
+      if (window.ethereum && isConnected) {
+        const provider = new ethers.providers.Web3Provider(window.ethereum);
+        const signer = provider.getSigner();
+
+        const ydContract = YiDengToken__factory.connect(YIDENG_TOKEN_ADDRESS, signer);
+        const courseContract = CourseMarket__factory.connect(COURSE_MARKET_ADDRESS, signer);
+
+        setProvider(provider);
+        setSigner(signer);
+        setYdContract(ydContract);
+        setCourseContract(courseContract);
+
+        // 初始化时获取余额
+        if (address) {
+          const balance = await ydContract.balanceOf(address);
+          setTokenBalance(balance.toString());
+        }
+      }
+    };
+
+    initContracts();
+  }, [isConnected, address]);
+
+  // 监听余额变化
+  useEffect(() => {
+    if (!ydContract || !address) return;
+
+    const updateBalance = async () => {
+      try {
+        const balance = await ydContract.balanceOf(address);
+        setTokenBalance(balance.toString());
+      } catch (error) {
+        console.error("Error fetching token balance:", error);
+      }
+    };
+
+    // 监听 Transfer 事件
+    const filter = ydContract.filters.Transfer(null, address);
+    ydContract.on(filter, updateBalance);
+
+    return () => {
+      ydContract.off(filter, updateBalance);
+    };
+  }, [ydContract, address]);
 
   // Update profile
   const updateProfile = (
@@ -111,13 +174,17 @@ const Web3ProviderContent = ({ children }: { children: ReactNode }) => {
     <Web3Context.Provider
       value={{
         address: address || null,
-        balance: balanceData?.formatted || "0",
-        tokenBalance: tokenBalanceData?.toString() || "0",
+        balance: balanceData?.value ? ethers.utils.formatEther(balanceData.value) : "0",
+        tokenBalance,
         username,
         profile,
         avatar,
         updateProfile,
         isConnected,
+        ydContract,
+        courseContract,
+        provider,
+        signer,
       }}
     >
       {children}

@@ -35,7 +35,7 @@ export function ConnectWallet() {
         {({ openConnectModal }) => (
           <Button
             onClick={openConnectModal}
-            className="bg-purple-600 hover:bg-purple-700"
+            className="bg-purple-600 hover:bg-purple-700 text-white"
           >
             <Wallet className="mr-2 h-4 w-4" />
             Connect Wallet
