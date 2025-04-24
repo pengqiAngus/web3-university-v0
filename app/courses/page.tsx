@@ -1,157 +1,67 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import Link from "next/link"
-import Navbar from "@/components/navbar"
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Search, Clock, Star, BookOpen } from "lucide-react"
-import { motion } from "framer-motion"
-
-// Sample course data
-const COURSES = [
-  {
-    id: 1,
-    title: "Blockchain Fundamentals",
-    description:
-      "Learn the basics of blockchain technology and how it works. This comprehensive course covers distributed ledgers, consensus mechanisms, and more.",
-    image: "/placeholder.svg?height=200&width=400",
-    duration: "4 hours",
-    level: "Beginner",
-    rating: 4.8,
-    students: 1245,
-  },
-  {
-    id: 2,
-    title: "Smart Contract Development",
-    description: "Build and deploy smart contracts on Ethereum",
-    image: "/placeholder.svg?height=200&width=400",
-    duration: "8 hours",
-    level: "Intermediate",
-    rating: 4.9,
-    students: 876,
-  },
-  {
-    id: 3,
-    title: "DeFi Protocols",
-    description:
-      "Understand decentralized finance protocols and applications. Explore lending, borrowing, and yield farming strategies in the DeFi ecosystem.",
-    image: "/placeholder.svg?height=200&width=400",
-    duration: "6 hours",
-    level: "Advanced",
-    rating: 4.7,
-    students: 654,
-  },
-  {
-    id: 4,
-    title: "NFT Creation & Trading",
-    description: "Create, mint and trade NFTs on various marketplaces",
-    image: "/placeholder.svg?height=200&width=400",
-    duration: "5 hours",
-    level: "Intermediate",
-    rating: 4.6,
-    students: 932,
-  },
-  {
-    id: 5,
-    title: "Web3 Frontend Development",
-    description:
-      "Build decentralized applications with React and ethers.js. Learn how to connect your frontend to blockchain networks and smart contracts.",
-    image: "/placeholder.svg?height=200&width=400",
-    duration: "10 hours",
-    level: "Intermediate",
-    rating: 4.9,
-    students: 1087,
-  },
-  {
-    id: 6,
-    title: "Crypto Trading Strategies",
-    description: "Learn effective trading strategies for cryptocurrency markets",
-    image: "/placeholder.svg?height=200&width=400",
-    duration: "7 hours",
-    level: "All Levels",
-    rating: 4.5,
-    students: 1532,
-  },
-  {
-    id: 7,
-    title: "Blockchain Security",
-    description:
-      "Master the security aspects of blockchain development and protect your applications from common vulnerabilities and attacks.",
-    image: "/placeholder.svg?height=200&width=400",
-    duration: "9 hours",
-    level: "Advanced",
-    rating: 4.8,
-    students: 743,
-  },
-  {
-    id: 8,
-    title: "Solidity Programming",
-    description: "Deep dive into Solidity programming language for Ethereum smart contracts",
-    image: "/placeholder.svg?height=200&width=400",
-    duration: "12 hours",
-    level: "Intermediate",
-    rating: 4.7,
-    students: 1156,
-  },
-  {
-    id: 9,
-    title: "Blockchain for Business",
-    description:
-      "Understand how blockchain technology can transform business operations and create new opportunities across industries.",
-    image: "/placeholder.svg?height=200&width=400",
-    duration: "5 hours",
-    level: "Beginner",
-    rating: 4.6,
-    students: 892,
-  },
-]
+import { useState, useEffect } from "react";
+import Link from "next/link";
+import Navbar from "@/components/navbar";
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Search, Clock, Star, BookOpen } from "lucide-react";
+import { motion } from "framer-motion";
+import { useCourseList } from "@/lib/hooks/use-course-db";
 
 export default function CoursesPage() {
-  const [searchTerm, setSearchTerm] = useState("")
-  const [scrollY, setScrollY] = useState(0)
-  const [columns, setColumns] = useState(3)
+  const { data: courses, isLoading, error } = useCourseList();
+
+  const [searchTerm, setSearchTerm] = useState("");
+  const [scrollY, setScrollY] = useState(0);
+  const [columns, setColumns] = useState(3);
 
   useEffect(() => {
     const handleScroll = () => {
-      setScrollY(window.scrollY)
-    }
+      setScrollY(window.scrollY);
+    };
 
     const handleResize = () => {
       if (window.innerWidth < 640) {
-        setColumns(1)
+        setColumns(1);
       } else if (window.innerWidth < 1024) {
-        setColumns(2)
+        setColumns(2);
       } else {
-        setColumns(3)
+        setColumns(3);
       }
-    }
+    };
 
-    window.addEventListener("scroll", handleScroll)
-    window.addEventListener("resize", handleResize)
+    window.addEventListener("scroll", handleScroll);
+    window.addEventListener("resize", handleResize);
 
     // Initial column setup
-    handleResize()
+    handleResize();
 
     return () => {
-      window.removeEventListener("scroll", handleScroll)
-      window.removeEventListener("resize", handleResize)
-    }
-  }, [])
+      window.removeEventListener("scroll", handleScroll);
+      window.removeEventListener("resize", handleResize);
+    };
+  }, []);
 
-  const filteredCourses = COURSES.filter(
+  const filteredCourses = courses?.filter(
     (course) =>
-      course.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      course.description.toLowerCase().includes(searchTerm.toLowerCase()),
-  )
+      course.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      course.description.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   // Distribute courses into columns for waterfall layout
-  const columnContents = Array.from({ length: columns }, () => [])
+  const columnContents = Array.from({ length: columns }, () => []);
 
-  filteredCourses.forEach((course, index) => {
-    columnContents[index % columns].push(course)
-  })
+  filteredCourses?.forEach((course, index) => {
+    columnContents[index % columns].push(course);
+  });
 
   // Animation variants
   const container = {
@@ -162,12 +72,12 @@ export default function CoursesPage() {
         staggerChildren: 0.1,
       },
     },
-  }
+  };
 
   const item = {
     hidden: { opacity: 0, y: 20 },
     show: { opacity: 1, y: 0, transition: { duration: 0.5 } },
-  }
+  };
 
   return (
     <main className="min-h-screen bg-black relative overflow-hidden">
@@ -217,7 +127,12 @@ export default function CoursesPage() {
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
           </motion.div>
 
-          <motion.div className="flex flex-wrap -mx-4" variants={container} initial="hidden" animate="show">
+          <motion.div
+            className="flex flex-wrap -mx-4"
+            variants={container}
+            initial="hidden"
+            animate="show"
+          >
             {columnContents.map((columnCourses, columnIndex) => (
               <div key={columnIndex} className="px-4 w-full sm:w-1/2 lg:w-1/3">
                 <div className="space-y-8">
@@ -241,7 +156,9 @@ export default function CoursesPage() {
                           </CardHeader>
 
                           <CardContent className="pb-2">
-                            <p className="text-gray-400 text-sm mb-4">{course.description}</p>
+                            <p className="text-gray-400 text-sm mb-4">
+                              {course.description}
+                            </p>
 
                             <div className="flex items-center justify-between text-sm text-gray-400">
                               <div className="flex items-center">
@@ -275,5 +192,5 @@ export default function CoursesPage() {
         </div>
       </div>
     </main>
-  )
+  );
 }

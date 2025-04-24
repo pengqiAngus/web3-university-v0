@@ -2,9 +2,9 @@ import type React from "react";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import { Web3Provider } from "@/lib/web3-context";
-import { Toaster } from "@/components/ui/toaster";
 import "./globals.css";
 import "@rainbow-me/rainbowkit/styles.css";
+import { Providers } from "./providers";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -22,10 +22,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={inter.className}>
-        <Web3Provider>
-          {children}
-          <Toaster />
-        </Web3Provider>
+        <Providers>
+          <Web3Provider>{children}</Web3Provider>
+        </Providers>
       </body>
     </html>
   );
