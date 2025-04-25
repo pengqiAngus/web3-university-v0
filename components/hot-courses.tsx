@@ -12,11 +12,6 @@ export default function HotCourses() {
   const { data, isLoading, error } = useCourseList();
 
   const hotCourse = data?.slice(0, 6) || [];
-  const breakpointColumnsObj = {
-    default: 3,
-    1100: 2,
-    700: 1,
-  };
 
   return (
     <section className="py-20 relative">
@@ -42,29 +37,12 @@ export default function HotCourses() {
             technology and Web3 development
           </p>
         </motion.div>
-
-        <style jsx global>{`
-          .my-masonry-grid {
-            display: flex;
-            width: auto;
-            gap: 2rem;
-          }
-          .my-masonry-grid_column {
-            padding: 0;
-            background-clip: padding-box;
-          }
-          .my-masonry-grid_column > div {
-            margin-bottom: 2rem;
-          }
-        `}</style>
-
-        <Masonry
-          breakpointCols={breakpointColumnsObj}
-          className="my-masonry-grid"
-          columnClassName="my-masonry-grid_column"
-        >
+        <div className="grid grid-cols-3 md:grid-cols-2 lg:grid-cols-3 gap-12">
           {hotCourse?.map((course, index) => (
             <motion.div
+              className={`w-full ${
+                index % 3 === 0 || index % 3 === 2 ? "pt-10" : "pb-10"
+              }`}
               key={course.id}
               initial={{
                 opacity: 0,
@@ -81,50 +59,66 @@ export default function HotCourses() {
               viewport={{ once: true }}
             >
               <Link href={`/courses/${course.id}`}>
-                <Card className="bg-black/40 border border-purple-500/20 backdrop-blur-sm text-white hover:border-purple-500/50 transition-all hover:shadow-lg hover:shadow-purple-500/10 cursor-pointer h-full group">
-                  <div className="relative overflow-hidden aspect-[4/3]">
-                    <img
-                      src={course.imgUrl || "/placeholder.svg"}
-                      alt={course.title}
-                      className="w-full h-full object-cover rounded-t-lg transition-transform duration-500 group-hover:scale-105"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                  </div>
+                <Card className="relative bg-gradient-to-br from-black/40 via-purple-900/20 to-black/40 backdrop-blur-xl text-white overflow-hidden transition-all duration-500 cursor-pointer group">
+                  {/* 渐变边框效果 */}
+                  <div className="absolute inset-0 bg-gradient-to-br from-purple-300/5 via-transparent to-purple-300/5 z-0" />
+                  <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-purple-300/5 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-700 z-0" />
+                  {/* 发光边框效果 */}
+                  <div className="absolute -inset-[1px] bg-gradient-to-r from-transparent via-purple-300/10 to-transparent blur-sm group-hover:via-purple-300/30 transition-all duration-700" />
 
-                  <CardContent className="p-4">
-                    <h3 className="text-xl font-semibold mb-2 group-hover:text-purple-400 transition-colors line-clamp-1">
-                      {course.title}
-                    </h3>
-                    <p className="text-gray-400 text-sm mb-4 line-clamp-2">
-                      {course.description}
-                    </p>
+                  <div className="absolute inset-0 bg-grid-white/[0.02] bg-[length:30px_30px]" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
 
-                    <div className="flex items-center justify-between text-sm text-gray-400">
-                      <div className="flex items-center">
-                        <Clock className="h-4 w-4 mr-1" />
-                        <span>{course.duration}</span>
-                      </div>
-                      <div className="flex items-center">
-                        <BookOpen className="h-4 w-4 mr-1" />
-                        <span>{course.level}</span>
-                      </div>
-                      <div className="flex items-center">
-                        <Star className="h-4 w-4 mr-1 text-yellow-500" />
-                        <span>{course.rating}</span>
-                      </div>
+                  <div className="relative z-10">
+                    <div className="relative overflow-hidden aspect-[4/3]">
+                      <div className="absolute -inset-1 bg-gradient-to-r from-purple-300/10 via-transparent to-purple-300/10 z-0 group-hover:opacity-100 group-hover:animate-pulse transition-opacity blur-xl" />
+                      <img
+                        src={course.imgUrl || "/placeholder.svg"}
+                        alt={course.title}
+                        className="relative z-10 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 group-hover:rotate-1"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-60" />
                     </div>
-                  </CardContent>
 
-                  <CardFooter className="p-4 pt-0">
-                    <Button className="w-full text-white bg-purple-600/80 hover:bg-purple-600 group-hover:bg-purple-500 transition-colors">
-                      View Course
-                    </Button>
-                  </CardFooter>
+                    <CardContent className="relative z-20 p-6 bg-gradient-to-b from-transparent via-black/50 to-black/50">
+                      <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-purple-300/30 to-transparent" />
+
+                      <h3 className="text-xl font-bold mb-3 bg-gradient-to-r from-white to-purple-200 bg-clip-text text-transparent group-hover:from-purple-400 group-hover:to-white transition-all duration-500">
+                        {course.title}
+                      </h3>
+
+                      <p className="text-gray-300 text-sm mb-4 line-clamp-2 group-hover:text-gray-200 transition-colors">
+                        {course.description}
+                      </p>
+
+                      <div className="flex items-center justify-between text-sm text-gray-400 group-hover:text-gray-300 transition-colors">
+                        <div className="flex items-center space-x-2 bg-black/30 px-3 py-1 rounded-full backdrop-blur-sm border border-purple-300/10 group-hover:border-purple-300/20 transition-colors">
+                          <Clock className="h-4 w-4 text-purple-400" />
+                          <span>{course.duration}</span>
+                        </div>
+                        <div className="flex items-center space-x-2 bg-black/30 px-3 py-1 rounded-full backdrop-blur-sm border border-purple-300/10 group-hover:border-purple-300/20 transition-colors">
+                          <BookOpen className="h-4 w-4 text-purple-400" />
+                          <span>{course.level}</span>
+                        </div>
+                        <div className="flex items-center space-x-2 bg-black/30 px-3 py-1 rounded-full backdrop-blur-sm border border-purple-300/10 group-hover:border-purple-300/20 transition-colors">
+                          <Star className="h-4 w-4 text-yellow-500" />
+                          <span>{course.rating}</span>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </div>
                 </Card>
               </Link>
             </motion.div>
           ))}
-        </Masonry>
+        </div>
+        <div className="flex justify-center mt-8">
+          <Link href="/courses">
+            <Button className="bg-purple-600 text-white hover:bg-purple-700 transition-colors">
+              View All Courses
+            </Button>
+          </Link>
+        </div>
       </div>
     </section>
   );

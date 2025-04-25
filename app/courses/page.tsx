@@ -55,13 +55,6 @@ export default function CoursesPage() {
       course.description.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  // Distribute courses into columns for waterfall layout
-  const columnContents = Array.from({ length: columns }, () => []);
-
-  filteredCourses?.forEach((course, index) => {
-    columnContents[index % columns].push(course);
-  });
-
   // Animation variants
   const container = {
     hidden: { opacity: 0 },
@@ -127,65 +120,65 @@ export default function CoursesPage() {
           </motion.div>
 
           <motion.div
-            className="flex flex-wrap -mx-4"
+            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
             variants={container}
             initial="hidden"
             animate="show"
           >
-            {columnContents.map((columnCourses, columnIndex) => (
-              <div key={columnIndex} className="px-4 w-full sm:w-1/2 lg:w-1/3">
-                <div className="space-y-8">
-                  {columnCourses.map((course, index) => (
-                    <motion.div key={course.id} variants={item}>
-                      <Link href={`/courses/${course.id}`}>
-                        <Card className="bg-black/40 border border-purple-500/20 backdrop-blur-sm text-white hover:border-purple-500/50 transition-all hover:shadow-lg hover:shadow-purple-500/10 cursor-pointer h-full group">
-                          <div className="relative overflow-hidden">
-                            <img
-                              src={course.imgUrl || "/placeholder.svg"}
-                              alt={course.title}
-                              className="w-full h-48 object-cover rounded-t-lg transition-transform duration-500 group-hover:scale-105"
-                            />
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                          </div>
+            {filteredCourses?.map((course, index) => (
+              <motion.div
+                className={`w-full ${
+                  index % 3 === 0 || index % 3 === 2 ? "pt-10" : "pb-10"
+                }`}
+                key={course.id}
+                variants={item}
+              >
+                <Link href={`/courses/${course.id}`}>
+                  <Card className="bg-black/40 border border-purple-500/20 backdrop-blur-sm text-white hover:border-purple-500/50 transition-all hover:shadow-lg hover:shadow-purple-500/10 cursor-pointer h-full group">
+                    <div className="relative overflow-hidden">
+                      <img
+                        src={course.imgUrl || "/placeholder.svg"}
+                        alt={course.title}
+                        className="w-full h-48 object-cover rounded-t-lg transition-transform duration-500 group-hover:scale-105"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                    </div>
 
-                          <CardHeader className="pb-2">
-                            <CardTitle className="text-xl group-hover:text-purple-400 transition-colors">
-                              {course.title}
-                            </CardTitle>
-                          </CardHeader>
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-xl group-hover:text-purple-400 transition-colors">
+                        {course.title}
+                      </CardTitle>
+                    </CardHeader>
 
-                          <CardContent className="pb-2">
-                            <p className="text-gray-400 text-sm mb-4">
-                              {course.description}
-                            </p>
+                    <CardContent className="pb-2">
+                      <p className="text-gray-400 text-sm mb-4">
+                        {course.description}
+                      </p>
 
-                            <div className="flex items-center justify-between text-sm text-gray-400">
-                              <div className="flex items-center">
-                                <Clock className="h-4 w-4 mr-1" />
-                                <span>{course.duration}</span>
-                              </div>
-                              <div className="flex items-center">
-                                <BookOpen className="h-4 w-4 mr-1" />
-                                <span>{course.level}</span>
-                              </div>
-                              <div className="flex items-center">
-                                <Star className="h-4 w-4 mr-1 text-yellow-500" />
-                                <span>{course.rating}</span>
-                              </div>
-                            </div>
-                          </CardContent>
+                      <div className="flex items-center justify-between text-sm text-gray-400">
+                        <div className="flex items-center">
+                          <Clock className="h-4 w-4 mr-1" />
+                          <span>{course.duration}</span>
+                        </div>
+                        <div className="flex items-center">
+                          <BookOpen className="h-4 w-4 mr-1" />
+                          <span>{course.level}</span>
+                        </div>
+                        <div className="flex items-center">
+                          <Star className="h-4 w-4 mr-1 text-yellow-500" />
+                          <span>{course.rating}</span>
+                        </div>
+                      </div>
+                    </CardContent>
 
-                          <CardFooter>
-                            <Button className="w-full bg-purple-600/80 hover:bg-purple-600 group-hover:bg-purple-500 transition-colors">
-                              View Course
-                            </Button>
-                          </CardFooter>
-                        </Card>
-                      </Link>
-                    </motion.div>
-                  ))}
-                </div>
-              </div>
+                    <CardFooter>
+                      <Button className="w-full text-white bg-purple-600/80 hover:bg-purple-600 group-hover:bg-purple-500 transition-colors">
+                        View Course
+                      </Button>
+                    </CardFooter>
+                  </Card>
+                </Link>
+              </motion.div>
             ))}
           </motion.div>
         </div>
