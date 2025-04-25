@@ -19,7 +19,7 @@ import { ethers } from "ethers";
 import { YiDengToken__factory } from '@/typechain-types';
 import { CourseMarket__factory } from '@/typechain-types';
 import { FileInfo } from "@/lib/types/index";
-import { useProfileUpdate, useUserProfile } from "@/lib/hooks/use-user-profile";
+import {  useUserProfile } from "@/lib/hooks/use-user-profile";
 const queryClient = new QueryClient();
 
 const projectId = "YOUR_PROJECT_ID"; // 从 WalletConnect 获取
@@ -60,6 +60,7 @@ interface Web3ContextType {
   title: string;
   description: string;
   avatar: FileInfo;
+  avatarUrl: string;
   isAuthenticated: boolean;
   setIsAuthenticated: (isAuthenticated: boolean) => void;
   updateProfile: (
@@ -88,6 +89,7 @@ const defaultContext: Web3ContextType = {
     mimetype: "",
     title: "",
   },
+  avatarUrl: "",
   isAuthenticated: false,
   setIsAuthenticated: () => {},
   updateProfile: () => {},
@@ -108,7 +110,7 @@ const Web3ProviderContent = ({ children }: { children: ReactNode }) => {
     address,
   });
   const profile = useUserProfile(address);
-  const { username, title, description, avatar, updateProfile } = profile || defaultContext;
+  const { username, title, description, avatar,avatarUrl, updateProfile } = profile || defaultContext;
     const [ydContract, setYdContract] = useState<ethers.Contract | null>(null);
   const [courseContract, setCourseContract] = useState<ethers.Contract | null>(null);
   const [provider, setProvider] = useState<ethers.providers.Web3Provider | null>(null);
@@ -171,6 +173,7 @@ const Web3ProviderContent = ({ children }: { children: ReactNode }) => {
         title,
         description,
         avatar,
+        avatarUrl,
         isAuthenticated,
         setIsAuthenticated,
         updateProfile,

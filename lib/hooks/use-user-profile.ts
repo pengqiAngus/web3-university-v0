@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { FileInfo, UserProfile } from "@/lib/types/index";
+import { FileInfo } from "@/lib/types/index";
 import { fetchApi } from "../api/fetch";
 
 export const useUserProfile = (address: string | null | undefined) => {
@@ -12,6 +12,7 @@ export const useUserProfile = (address: string | null | undefined) => {
         mimetype: "",
         title: "",
     });
+    const [avatarUrl, setAvatarUrl] = useState("");
   const updateProfile = (
     newUsername: string,
     newDescription: string,
@@ -35,5 +36,5 @@ export const useUserProfile = (address: string | null | undefined) => {
     fetchProfile();
   }, [address]);
 
-  return { username, title, description, avatar, address, updateProfile };
+  return { username, title, description, avatar,avatarUrl, address, updateProfile };
 };

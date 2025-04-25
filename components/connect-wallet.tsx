@@ -18,17 +18,15 @@ import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { useEffect, useState } from "react";
 import { getNonce, getToken } from "@/lib/api/user";
 import { ethers } from "ethers";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 
 export function ConnectWallet() {
-  const router = useRouter();
   const {
     address,
     username,
     balance,
     tokenBalance,
-    avatar,
+    avatarUrl,
     isConnected,
     isAuthenticated,
     setIsAuthenticated,
@@ -97,7 +95,7 @@ export function ConnectWallet() {
             >
               <Avatar className="h-10 w-10">
                 <AvatarImage
-                  src={avatar || "/placeholder.svg?height=40&width=40"}
+                  src={avatarUrl || "/placeholder.svg?height=40&width=40"}
                   alt={username}
                   className="border-2 border-purple-500/50 rounded-full"
                 />
