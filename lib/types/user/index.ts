@@ -8,6 +8,7 @@ export interface UserProfile {
   title: string;
   description: string;
   avatar: FileInfo;
+  avatarUrl?: string;
 }
 
 

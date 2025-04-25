@@ -2,7 +2,7 @@
 
 import type React from "react";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import Navbar from "@/components/navbar";
 import {
   Card,
@@ -41,6 +41,7 @@ export default function ProfilePage() {
     title,
     description,
     avatar,
+    avatarUrl,
     updateProfile,
   } = useWeb3();
   const [isEditing, setIsEditing] = useState(false);
@@ -48,9 +49,13 @@ export default function ProfilePage() {
   const [newTitle, setNewTitle] = useState(title);
   const [newDescription, setNewDescription] = useState(description);
   const [newAvatar, setNewAvatar] = useState(avatar);
-  const [newAvatarUrl, setNewAvatarUrl] = useState("");
+  const [newAvatarUrl, setNewAvatarUrl] = useState(avatarUrl);
   const [isSaving, setIsSaving] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    setNewAvatarUrl(avatarUrl);
+  }, [avatarUrl]);
 
   const handleSave = () => {
     setIsSaving(true);
@@ -226,7 +231,7 @@ export default function ProfilePage() {
                                 alt={username}
                               />
                               <AvatarFallback className="bg-purple-900 text-white text-xl">
-                                {newUsername.substring(0, 2).toUpperCase()}
+                                {newUsername?.substring(0, 2).toUpperCase()}
                               </AvatarFallback>
                             </Avatar>
                             {newAvatarUrl && (
@@ -340,7 +345,7 @@ export default function ProfilePage() {
                               alt={username}
                             />
                             <AvatarFallback className="bg-purple-900 text-white text-xl">
-                              {username.substring(0, 2).toUpperCase()}
+                              {username?.substring(0, 2).toUpperCase()}
                             </AvatarFallback>
                           </Avatar>
                         </div>
@@ -352,9 +357,7 @@ export default function ProfilePage() {
                           <p className="text-xl">{username}</p>
                         </div>
                         <div>
-                          <h3 className="text-sm text-gray-400 mb-1">
-                            Title
-                          </h3>
+                          <h3 className="text-sm text-gray-400 mb-1">Title</h3>
                           <p className="text-gray-300">{title}</p>
                         </div>
                         <div>

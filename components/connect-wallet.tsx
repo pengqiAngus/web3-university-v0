@@ -100,7 +100,7 @@ export function ConnectWallet() {
                   className="border-2 border-purple-500/50 rounded-full"
                 />
                 <AvatarFallback className="bg-purple-900 text-white border-2 border-purple-500/50">
-                  {username.substring(0, 2).toUpperCase()}
+                  {username?.substring(0, 2).toUpperCase()}
                 </AvatarFallback>
               </Avatar>
             </Button>

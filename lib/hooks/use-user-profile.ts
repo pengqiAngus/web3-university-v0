@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
-import { FileInfo } from "@/lib/types/index";
-import { fetchApi } from "../api/fetch";
+import { FileInfo, UserProfile } from "@/lib/types/index";
 
 export const useUserProfile = (address: string | null | undefined) => {
     const [username, setUsername] = useState("Web3 User");
@@ -26,12 +25,21 @@ export const useUserProfile = (address: string | null | undefined) => {
 
   useEffect(() => {
     const fetchProfile = async () => {
-      if (!address) return;
-      const user = await fetchApi(`user/profile`, {
+        if (!address) return;
+        const token = localStorage.getItem('token');
+        if (!token) return;
+
+      const user = await fetch(`/api/user/profile`, {
         method: "POST",
-        body: JSON.stringify({ address }),
+        body: JSON.stringify({ address, token }),
       });
-      console.log("user", user);
+     const { avatar,avatarUrl, description, id, title, username }: UserProfile =
+         await user.json();
+        setAvatar(avatar);
+        setAvatarUrl(avatarUrl || "");
+        setDescription(description);
+        setTitle(title);
+        setUsername(username);
     };
     fetchProfile();
   }, [address]);
