@@ -8,13 +8,6 @@ interface ApiResponse<T> {
   data: T | null;
 }
 
-interface CourseListResponse {
-  courses: Course[];
-}
-
-interface CourseDetailResponse {
-  course: Course;
-}
 
 // 获取课程列表
 export const useCourseList = () => {

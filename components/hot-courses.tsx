@@ -1,18 +1,17 @@
 "use client";
 
-import { Card, CardContent, CardFooter } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Clock, Star, BookOpen } from "lucide-react";
 import { motion } from "framer-motion";
 import Link from "next/link";
-import Masonry from "react-masonry-css";
 import { useCourseList } from "@/lib/hooks/use-course-db";
 
 export default function HotCourses() {
   const { data, isLoading, error } = useCourseList();
 
   const hotCourse = data?.slice(0, 6) || [];
-    
+
   return (
     <section className="py-20 relative">
       {/* Gradient background */}
@@ -74,7 +73,7 @@ export default function HotCourses() {
                       <div className="absolute -inset-1 bg-gradient-to-r from-purple-300/10 via-transparent to-purple-300/10 z-0 group-hover:opacity-100 group-hover:animate-pulse transition-opacity blur-xl" />
                       <img
                         src={course.imgUrl || "/placeholder.svg"}
-                        alt={course.title}
+                        alt={course.name}
                         className="relative z-10 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 group-hover:rotate-1"
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-60" />
@@ -84,7 +83,7 @@ export default function HotCourses() {
                       <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-purple-300/30 to-transparent" />
 
                       <h3 className="text-xl font-bold mb-3 bg-gradient-to-r from-white to-purple-200 bg-clip-text text-transparent group-hover:from-purple-400 group-hover:to-white transition-all duration-500">
-                        {course.title}
+                        {course.name}
                       </h3>
 
                       <p className="text-gray-300 text-sm mb-4 line-clamp-2 group-hover:text-gray-200 transition-colors">
@@ -98,11 +97,11 @@ export default function HotCourses() {
                         </div>
                         <div className="flex items-center space-x-2 bg-black/30 px-3 py-1 rounded-full backdrop-blur-sm border border-purple-300/10 group-hover:border-purple-300/20 transition-colors">
                           <BookOpen className="h-4 w-4 text-purple-400" />
-                          <span>{course.level}</span>
+                            <span>{course.category}</span>
                         </div>
                         <div className="flex items-center space-x-2 bg-black/30 px-3 py-1 rounded-full backdrop-blur-sm border border-purple-300/10 group-hover:border-purple-300/20 transition-colors">
                           <Star className="h-4 w-4 text-yellow-500" />
-                          <span>{course.rating}</span>
+                          <span>{course.price}</span>
                         </div>
                       </div>
                     </CardContent>

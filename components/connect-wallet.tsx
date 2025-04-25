@@ -3,7 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { Wallet, LogOut, Coins } from "lucide-react";
 import { shortenAddress } from "@/lib/utils";
-import { useWeb3 } from "@/lib/web3-context";
+import { useWeb3 } from "@/lib/context/web3-context";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -16,14 +16,52 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { useEffect, useState } from "react";
+import { getNonce, getToken } from "@/lib/api/user";
+import { ethers } from "ethers";
 
 export function ConnectWallet() {
-  const { address, username, balance, tokenBalance, avatar } = useWeb3();
+  const {
+    address,
+    username,
+    balance,
+    tokenBalance,
+    avatar,
+    isConnected,
+    isAuthenticated,
+    setIsAuthenticated,
+  } = useWeb3();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  useEffect(() => {
+    const handleLogin = async () => {
+      if (address && isConnected && !isAuthenticated) {
+        try {
+          // 1. 获取 nonce
+          const response = await getNonce(address);
+          const nonce = response.data.nonce;
+          // 2. 使用钱包签名
+          if (typeof window.ethereum !== "undefined") {
+            const provider = new ethers.providers.Web3Provider(window.ethereum);
+            const signer = provider.getSigner();
+            const signature = await signer.signMessage(nonce);
+            const { data:{token} } = await getToken(address, signature, nonce);
+            localStorage.setItem("token", JSON.stringify(token));
+            setIsAuthenticated(true);
+          }
+        } catch (error) {
+          console.error("Login failed:", error);
+        }
+      }
+    };
+    const token = localStorage.getItem("token");
+    if (address && isConnected && !isAuthenticated && !token) {
+      handleLogin();
+    }
+  }, [address, isConnected, isAuthenticated, setIsAuthenticated]);
 
   if (!mounted) {
     return null;

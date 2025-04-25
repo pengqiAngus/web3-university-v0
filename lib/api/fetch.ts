@@ -1,6 +1,3 @@
-import { toast } from "@/hooks/use-toast";
-import { ApiResponse } from "./types";
-
 interface FetchOptions extends RequestInit {
   baseURL?: string;
 }
@@ -15,6 +12,7 @@ export async function fetchApi<T>(
       "NEXT_PUBLIC_API_URL is not defined in environment variables"
     );
   }
+  console.log("options", options);
 
   const url = new URL(`api/${path}`, baseURL);
   const response = await fetch(url, {

@@ -46,6 +46,7 @@ const config = getDefaultConfig({
       wallets: [metaMaskWallet, rainbowWallet, walletConnectWallet],
     },
   ],
+  ssr: true,
 });
 
 const COURSE_MARKET_ADDRESS = "0x5DA45119233433327cD77D66EfCdA92edE57Ce78";
@@ -57,6 +58,8 @@ interface Web3ContextType {
   username: string;
   profile: string;
   avatar: string;
+  isAuthenticated: boolean;
+  setIsAuthenticated: (isAuthenticated: boolean) => void;
   updateProfile: (
     newUsername: string,
     newProfile: string,
@@ -76,6 +79,8 @@ const defaultContext: Web3ContextType = {
   username: "Web3 User",
   profile: "I'm new to Web3 learning!",
   avatar: "",
+  isAuthenticated: false,
+  setIsAuthenticated: () => {},
   updateProfile: () => {},
   isConnected: false,
   ydContract: null,
@@ -102,7 +107,7 @@ const Web3ProviderContent = ({ children }: { children: ReactNode }) => {
   const [provider, setProvider] = useState<ethers.providers.Web3Provider | null>(null);
   const [signer, setSigner] = useState<ethers.Signer | null>(null);
   const [tokenBalance, setTokenBalance] = useState("0");
-
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   useEffect(() => {
     const initContracts = async () => {
       if (window.ethereum && isConnected) {
@@ -178,6 +183,8 @@ const Web3ProviderContent = ({ children }: { children: ReactNode }) => {
         username,
         profile,
         avatar,
+        isAuthenticated,
+        setIsAuthenticated,
         updateProfile,
         isConnected,
         ydContract,

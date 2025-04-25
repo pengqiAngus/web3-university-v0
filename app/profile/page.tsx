@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Wallet, Coins, User, Edit, Loader2, Database, Shield, Activity, Upload, X } from "lucide-react"
-import { useWeb3 } from "@/lib/web3-context"
+import { useWeb3 } from "@/lib/context/web3-context"
 import { motion } from "framer-motion"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 

@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { Course } from "@/lib/types";
+import { type Course } from "@/lib/types/index";
 import { fetchApi } from "@/lib/api/fetch";
 
 export async function GET(

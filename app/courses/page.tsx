@@ -15,7 +15,7 @@ import { Input } from "@/components/ui/input";
 import { Search, Clock, Star, BookOpen } from "lucide-react";
 import { motion } from "framer-motion";
 import { useCourseList } from "@/lib/hooks/use-course-db";
-import { useWeb3 } from "@/lib/web3-context";
+import { useWeb3 } from "@/lib/context/web3-context";
 
 export default function CoursesPage() {
   const { data: courses = [], isLoading, error } = useCourseList();

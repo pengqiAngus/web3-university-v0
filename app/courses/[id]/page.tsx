@@ -7,7 +7,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Play, Pause, BookOpen, Clock, Users, Award, ChevronRight } from "lucide-react"
-import { useWeb3 } from "@/lib/web3-context"
+import { useWeb3 } from "@/lib/context/web3-context"
 import { motion } from "framer-motion"
 
 // Sample course data

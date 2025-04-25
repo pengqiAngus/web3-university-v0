@@ -25,7 +25,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { useWeb3 } from "@/lib/web3-context";
+import { useWeb3 } from "@/lib/context/web3-context";
 import { motion } from "framer-motion";
 import { X, ImageIcon, Video, Loader2, Info } from "lucide-react";
 import {
