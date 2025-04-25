@@ -18,7 +18,6 @@ import { useCourseList } from "@/lib/hooks/use-course-db";
 
 export default function CoursesPage() {
   const { data: courses, isLoading, error } = useCourseList();
-
   const [searchTerm, setSearchTerm] = useState("");
   const [scrollY, setScrollY] = useState(0);
   const [columns, setColumns] = useState(3);
@@ -108,7 +107,7 @@ export default function CoursesPage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
           >
-            Web3 Courses
+            Video Content Creation Center
           </motion.h1>
 
           <motion.div
@@ -142,7 +141,7 @@ export default function CoursesPage() {
                         <Card className="bg-black/40 border border-purple-500/20 backdrop-blur-sm text-white hover:border-purple-500/50 transition-all hover:shadow-lg hover:shadow-purple-500/10 cursor-pointer h-full group">
                           <div className="relative overflow-hidden">
                             <img
-                              src={course.image || "/placeholder.svg"}
+                              src={course.imgUrl || "/placeholder.svg"}
                               alt={course.title}
                               className="w-full h-48 object-cover rounded-t-lg transition-transform duration-500 group-hover:scale-105"
                             />

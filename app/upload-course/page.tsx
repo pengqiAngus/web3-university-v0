@@ -35,7 +35,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { apiFetch, uploadFile } from "@/lib/api";
+import { fetchApi, uploadFile } from "@/lib/api";
 
 export default function UploadCoursePage() {
   const { address, connectWallet } = useWeb3();
@@ -242,7 +242,7 @@ export default function UploadCoursePage() {
         videoId: courseVideoId,
       };
 
-      const response = await apiFetch("/api/courses/confrim", {
+      const response = await fetchApi("/api/courses/confrim", {
         method: "POST",
         body: JSON.stringify(formData),
       });

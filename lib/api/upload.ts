@@ -1,5 +1,5 @@
 import { toast } from "@/hooks/use-toast";
-import { apiFetch } from "./fetch";
+import { fetchApi } from "./fetch";
 import { ApiResponse, UploadResponse } from "./types";
 
 export async function uploadFile(file: File): Promise<string> {
@@ -7,7 +7,7 @@ export async function uploadFile(file: File): Promise<string> {
   formData.append("file", file);
 
   try {
-    const response = await apiFetch<UploadResponse>("/api/upload", {
+    const response = await fetchApi<UploadResponse>("/api/upload", {
       method: "POST",
       body: formData,
       headers: {
