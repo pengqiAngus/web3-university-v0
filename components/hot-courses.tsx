@@ -12,7 +12,7 @@ export default function HotCourses() {
   const { data, isLoading, error } = useCourseList();
 
   const hotCourse = data?.slice(0, 6) || [];
-
+    
   return (
     <section className="py-20 relative">
       {/* Gradient background */}

@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { fetchApi } from "@/lib/api/fetch";
-import { Course } from "@/lib/types";
+import { type Course } from "@/lib/types/index";
 
 interface ApiResponse<T> {
   code: number;
@@ -18,12 +18,12 @@ interface CourseDetailResponse {
 
 // 获取课程列表
 export const useCourseList = () => {
-  return useQuery<ApiResponse<Course[]>>({
+  return useQuery<Course[]>({
     queryKey: ["courses"],
     queryFn: async () => {
       const res = await fetch(`/api/course/list`);
-      const data = await res.json();
-      return data.data;
+      const data: ApiResponse<Course[]> = await res.json();
+      return data.data || [];
     },
   });
 };
@@ -32,7 +32,11 @@ export const useCourseList = () => {
 export const useCourseDetail = (courseId: number) => {
   return useQuery<ApiResponse<Course>>({
     queryKey: ["course", courseId],
-    queryFn: () => fetch(`/api/course/detail/${courseId}`),
+    queryFn: async () => {
+      const res = await fetch(`/api/course/detail/${courseId}`);
+      const data = await res.json();
+      return data.data;
+    },
     enabled: !!courseId,
   });
 };

@@ -15,39 +15,58 @@ import { Input } from "@/components/ui/input";
 import { Search, Clock, Star, BookOpen } from "lucide-react";
 import { motion } from "framer-motion";
 import { useCourseList } from "@/lib/hooks/use-course-db";
+import { useWeb3 } from "@/lib/web3-context";
 
 export default function CoursesPage() {
-  const { data: courses, isLoading, error } = useCourseList();
+  const { data: courses = [], isLoading, error } = useCourseList();
   const [searchTerm, setSearchTerm] = useState("");
+  const { courseContract, address } = useWeb3();
+  const [userCourses, setUserCourses] = useState<Record<string, boolean>>({});
   const [scrollY, setScrollY] = useState(0);
-  const [columns, setColumns] = useState(3);
+
+    const buyCourse = async (courseId: string) => {
+      debugger;
+    try {
+      if (!courseContract || !address) {
+        throw new Error("Please connect your wallet first");
+      }
+      const tx = await courseContract.purchaseCourse(courseId);
+      await tx.wait();
+      // 更新用户课程状态
+      setUserCourses(prev => ({
+        ...prev,
+        [courseId]: true
+      }));
+    } catch (error) {
+      console.error("Error purchasing course:", error);
+      alert("Failed to purchase course. Please try again.");
+    }
+  };
 
   useEffect(() => {
     const handleScroll = () => {
       setScrollY(window.scrollY);
     };
 
-    const handleResize = () => {
-      if (window.innerWidth < 640) {
-        setColumns(1);
-      } else if (window.innerWidth < 1024) {
-        setColumns(2);
-      } else {
-        setColumns(3);
-      }
-    };
-
     window.addEventListener("scroll", handleScroll);
-    window.addEventListener("resize", handleResize);
-
-    // Initial column setup
-    handleResize();
-
     return () => {
       window.removeEventListener("scroll", handleScroll);
-      window.removeEventListener("resize", handleResize);
     };
   }, []);
+  useEffect(() => {
+    const initUserCourses = async () => {
+      if (courseContract && address) {
+        const coursesMap: Record<string, boolean> = {};
+        for (const course of courses) {
+          const id = await courseContract.web2ToCourseId(course.id);
+          const hasCourse = await courseContract.userCourses(address, id);
+          coursesMap[course.id] = hasCourse;
+        }
+        setUserCourses(coursesMap);
+      }
+    };
+    initUserCourses();
+  }, [courseContract, address, courses]);
 
   const filteredCourses = courses?.filter(
     (course) =>
@@ -133,12 +152,11 @@ export default function CoursesPage() {
                 key={course.id}
                 variants={item}
               >
-                <Link href={`/courses/${course.id}`}>
                   <Card className="bg-black/40 border border-purple-500/20 backdrop-blur-sm text-white hover:border-purple-500/50 transition-all hover:shadow-lg hover:shadow-purple-500/10 cursor-pointer h-full group">
                     <div className="relative overflow-hidden">
                       <img
                         src={course.imgUrl || "/placeholder.svg"}
-                        alt={course.title}
+                        alt={course.name}
                         className="w-full h-48 object-cover rounded-t-lg transition-transform duration-500 group-hover:scale-105"
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
@@ -146,7 +164,7 @@ export default function CoursesPage() {
 
                     <CardHeader className="pb-2">
                       <CardTitle className="text-xl group-hover:text-purple-400 transition-colors">
-                        {course.title}
+                        {course.name}
                       </CardTitle>
                     </CardHeader>
 
@@ -162,22 +180,32 @@ export default function CoursesPage() {
                         </div>
                         <div className="flex items-center">
                           <BookOpen className="h-4 w-4 mr-1" />
-                          <span>{course.level}</span>
+                          <span>{course.category}</span>
                         </div>
                         <div className="flex items-center">
                           <Star className="h-4 w-4 mr-1 text-yellow-500" />
-                          <span>{course.rating}</span>
+                          <span>{course.price}</span>
                         </div>
                       </div>
                     </CardContent>
 
                     <CardFooter>
-                      <Button className="w-full text-white bg-purple-600/80 hover:bg-purple-600 group-hover:bg-purple-500 transition-colors">
-                        View Course
-                      </Button>
+                      {userCourses[course.id] ? (
+                        <Link href={`/courses/${course.id}`} className="w-full">
+                          <Button className="w-full text-white bg-purple-600/80 hover:bg-purple-600 group-hover:bg-purple-500 transition-colors">
+                            View Course
+                          </Button>
+                        </Link>
+                      ) : (
+                        <Button 
+                          onClick={() => buyCourse(course.id)}
+                          className="w-full text-white bg-purple-600/80 hover:bg-purple-600 group-hover:bg-purple-500 transition-colors"
+                        >
+                          Buy Course
+                        </Button>
+                      )}
                     </CardFooter>
                   </Card>
-                </Link>
               </motion.div>
             ))}
           </motion.div>

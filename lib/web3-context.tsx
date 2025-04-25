@@ -108,7 +108,6 @@ const Web3ProviderContent = ({ children }: { children: ReactNode }) => {
       if (window.ethereum && isConnected) {
         const provider = new ethers.providers.Web3Provider(window.ethereum);
         const signer = provider.getSigner();
-
         const ydContract = YiDengToken__factory.connect(YIDENG_TOKEN_ADDRESS, signer);
         const courseContract = CourseMarket__factory.connect(COURSE_MARKET_ADDRESS, signer);
 
