@@ -18,7 +18,8 @@ import { mainnet, sepolia } from "wagmi/chains";
 import { ethers } from "ethers";
 import { YiDengToken__factory } from '@/typechain-types';
 import { CourseMarket__factory } from '@/typechain-types';
-
+import { FileInfo } from "@/lib/types/index";
+import { useProfileUpdate, useUserProfile } from "@/lib/hooks/use-user-profile";
 const queryClient = new QueryClient();
 
 const projectId = "YOUR_PROJECT_ID"; // 从 WalletConnect 获取
@@ -56,14 +57,16 @@ interface Web3ContextType {
   balance: string;
   tokenBalance: string;
   username: string;
-  profile: string;
-  avatar: string;
+  title: string;
+  description: string;
+  avatar: FileInfo;
   isAuthenticated: boolean;
   setIsAuthenticated: (isAuthenticated: boolean) => void;
   updateProfile: (
     newUsername: string,
-    newProfile: string,
-    newAvatar?: string
+    newDescription: string,
+    newTitle: string,
+    newAvatar?: FileInfo
   ) => void;
   isConnected: boolean;
   ydContract: ethers.Contract | null;
@@ -77,8 +80,14 @@ const defaultContext: Web3ContextType = {
   balance: "0",
   tokenBalance: "0",
   username: "Web3 User",
-  profile: "I'm new to Web3 learning!",
-  avatar: "",
+  title: "",
+  description: "I'm new to Web3 learning!",
+  avatar: {
+    id: "",
+    size: 0,
+    mimetype: "",
+    title: "",
+  },
   isAuthenticated: false,
   setIsAuthenticated: () => {},
   updateProfile: () => {},
@@ -98,11 +107,9 @@ const Web3ProviderContent = ({ children }: { children: ReactNode }) => {
   const { data: balanceData } = useBalance({
     address,
   });
-  
-  const [username, setUsername] = useState("Web3 User");
-  const [profile, setProfile] = useState("I'm new to Web3 learning!");
-  const [avatar, setAvatar] = useState("");
-  const [ydContract, setYdContract] = useState<ethers.Contract | null>(null);
+  const profile = useUserProfile(address);
+  const { username, title, description, avatar, updateProfile } = profile || defaultContext;
+    const [ydContract, setYdContract] = useState<ethers.Contract | null>(null);
   const [courseContract, setCourseContract] = useState<ethers.Contract | null>(null);
   const [provider, setProvider] = useState<ethers.providers.Web3Provider | null>(null);
   const [signer, setSigner] = useState<ethers.Signer | null>(null);
@@ -124,7 +131,7 @@ const Web3ProviderContent = ({ children }: { children: ReactNode }) => {
         // 初始化时获取余额
         if (address) {
           const balance = await ydContract.balanceOf(address);
-          setTokenBalance(balance.toString());
+          setTokenBalance( balance.toString());
         }
       }
     };
@@ -154,34 +161,15 @@ const Web3ProviderContent = ({ children }: { children: ReactNode }) => {
     };
   }, [ydContract, address]);
 
-  // Update profile
-  const updateProfile = (
-    newUsername: string,
-    newProfile: string,
-    newAvatar?: string
-  ) => {
-    if (!address) return;
-
-    setUsername(newUsername);
-    setProfile(newProfile);
-
-    if (newAvatar !== undefined) {
-      setAvatar(newAvatar);
-      localStorage.setItem(`avatar_${address}`, newAvatar);
-    }
-
-    localStorage.setItem(`username_${address}`, newUsername);
-    localStorage.setItem(`profile_${address}`, newProfile);
-  };
-
   return (
     <Web3Context.Provider
       value={{
         address: address || null,
-        balance: balanceData?.value ? ethers.utils.formatEther(balanceData.value) : "0",
+        balance: balanceData?.value ? Number(ethers.utils.formatEther(balanceData.value)).toFixed(2) : "0",
         tokenBalance,
         username,
-        profile,
+        title,
+        description,
         avatar,
         isAuthenticated,
         setIsAuthenticated,

@@ -1,27 +1,30 @@
-import { toast } from "@/hooks/use-toast";
-import { fetchApi } from "./fetch";
-import { ApiResponse, UploadResponse } from "./types";
+import { FileInfo } from "../types/upload";
 
-export async function uploadFile(file: File): Promise<string> {
+export interface FileInfoData {
+  url: string;
+  size: number;
+  mimetype: string;
+  filename: string;
+}
+
+export function createTempFileUrl(file: File): string {
+  return URL.createObjectURL(file);
+}
+
+export async function uploadFile(file: File): Promise<FileInfo> {
   const formData = new FormData();
   formData.append("file", file);
 
   try {
-    const response = await fetchApi<UploadResponse>("/api/upload", {
+    const response = await fetch("/api/upload", {
       method: "POST",
       body: formData,
-      headers: {
-        // 移除 Content-Type 让浏览器自动设置正确的 multipart/form-data
-        "Content-Type": undefined,
-      },
     });
 
-    if (!response.data?.fileId) {
-      throw new Error("上传失败：未获取到文件 ID");
-    }
-
-    return response.data.fileId;
+    const result = await response.json();
+    return result.data.data.fileInfo as FileInfo;
   } catch (error) {
+    console.error("文件上传失败:", error);
     throw error instanceof Error ? error : new Error("上传失败");
   }
 }

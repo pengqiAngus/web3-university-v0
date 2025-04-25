@@ -15,12 +15,20 @@ export async function fetchApi<T>(
   console.log("options", options);
 
   const url = new URL(`api/${path}`, baseURL);
+  
+  // 根据请求体类型设置 Content-Type
+  const headers = new Headers(options.headers);
+  if (!headers.has('Content-Type')) {
+    if (options.body instanceof FormData) {
+      // FormData 不需要设置 Content-Type，浏览器会自动设置正确的 boundary
+    } else if (typeof options.body === 'string') {
+      headers.set('Content-Type', 'application/json');
+    }
+  }
+
   const response = await fetch(url, {
     ...options,
-    headers: {
-      "Content-Type": "application/json",
-      ...options.headers,
-    },
+    headers,
   });
 
   if (!response.ok) {

@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Wallet, LogOut, Coins } from "lucide-react";
+import { Wallet, LogOut, Coins, User } from "lucide-react";
 import { shortenAddress } from "@/lib/utils";
 import { useWeb3 } from "@/lib/context/web3-context";
 import {
@@ -18,8 +18,11 @@ import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { useEffect, useState } from "react";
 import { getNonce, getToken } from "@/lib/api/user";
 import { ethers } from "ethers";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 export function ConnectWallet() {
+  const router = useRouter();
   const {
     address,
     username,
@@ -119,14 +122,22 @@ export function ConnectWallet() {
             </DropdownMenuLabel>
             <DropdownMenuSeparator className="bg-purple-500/20" />
             <DropdownMenuGroup>
-              <DropdownMenuItem className="flex justify-between cursor-default">
+              <Link href="/profile">
+                <DropdownMenuItem className="flex justify-between cursor-pointer hover:bg-purple-500/10">
+                  <div className="flex items-center">
+                    <User className="mr-2 h-4 w-4 text-purple-400" />
+                    <span>Profile</span>
+                  </div>
+                </DropdownMenuItem>
+              </Link>
+              <DropdownMenuItem className="flex justify-between cursor-pointer hover:bg-purple-500/10">
                 <div className="flex items-center">
                   <Coins className="mr-2 h-4 w-4 text-purple-400" />
                   <span>ETH Balance</span>
                 </div>
-                <span>{balance}</span>
+                <span>{balance} ETH</span>
               </DropdownMenuItem>
-              <DropdownMenuItem className="flex justify-between cursor-default">
+              <DropdownMenuItem className="flex justify-between cursor-pointer hover:bg-purple-500/10">
                 <div className="flex items-center">
                   <Coins className="mr-2 h-4 w-4 text-pink-400" />
                   <span>YDT Balance</span>
@@ -136,11 +147,11 @@ export function ConnectWallet() {
             </DropdownMenuGroup>
             <DropdownMenuSeparator className="bg-purple-500/20" />
             <DropdownMenuItem
-              className="text-red-400 focus:text-red-400 focus:bg-red-500/10"
+              className="text-red-400 focus:text-red-400 focus:bg-red-500/10 cursor-pointer hover:bg-red-500/10 cursor-pointer"
               onClick={openAccountModal}
             >
               <LogOut className="mr-2 h-4 w-4" />
-              <span>Disconnect</span>
+              <span className="cursor-pointer">Disconnect</span>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
