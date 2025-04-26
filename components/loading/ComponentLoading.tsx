@@ -1,20 +1,16 @@
-'use client';
+"use client";
 
-import { motion } from 'framer-motion';
+import { motion } from "framer-motion";
 
 interface ComponentLoadingProps {
   message?: string;
-  isVisible: boolean;
   className?: string;
 }
 
-const ComponentLoading: React.FC<ComponentLoadingProps> = ({ 
-  message = 'Loading...', 
-  isVisible,
-  className = ''
+const ComponentLoading: React.FC<ComponentLoadingProps> = ({
+  message = "Loading...",
+  className = "",
 }) => {
-  if (!isVisible) return null;
-
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -33,13 +29,11 @@ const ComponentLoading: React.FC<ComponentLoadingProps> = ({
           transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
         />
         {message && (
-          <motion.p className="text-sm text-primary-400">
-            {message}
-          </motion.p>
+          <motion.p className="text-sm text-primary-400">{message}</motion.p>
         )}
       </motion.div>
     </motion.div>
   );
 };
 
-export default ComponentLoading; 
+export default ComponentLoading;

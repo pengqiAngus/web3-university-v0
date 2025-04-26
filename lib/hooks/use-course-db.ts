@@ -8,7 +8,6 @@ interface ApiResponse<T> {
   data: T | null;
 }
 
-
 // 获取课程列表
 export const useCourseList = () => {
   return useQuery<Course[]>({

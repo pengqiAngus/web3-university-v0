@@ -1,121 +1,141 @@
-"use client"
+"use client";
 
-import type React from "react"
+import type React from "react";
 
-import { useState, useEffect } from "react"
-import { useWeb3 } from "@/lib/context/web3-context"
-import Navbar from "@/components/navbar"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { ArrowDown, ArrowUp, ArrowUpDown, Wallet, Loader2 } from "lucide-react"
-import { motion } from "framer-motion"
+import { useState, useEffect } from "react";
+import { useWeb3 } from "@/lib/context/web3-context";
+import Navbar from "@/components/navbar";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { ArrowDown, ArrowUp, ArrowUpDown, Wallet, Loader2 } from "lucide-react";
+import { motion } from "framer-motion";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { ethers } from "ethers";
+import { Toaster, toast } from "sonner";
 
 export default function SwapPage() {
-  const { address, balance, tokenBalance, ydContract, signer } = useWeb3()
-  const [ethAmount, setEthAmount] = useState("")
-  const [tokenAmount, setTokenAmount] = useState("")
-  const [isLoading, setIsLoading] = useState(false)
-  const [isBuying, setIsBuying] = useState(true) // true: ETH -> Token, false: Token -> ETH
-  const [exchangeRate, setExchangeRate] = useState(1000) // 1 ETH = 1000 YDT
+  const { address, balance, tokenBalance, ydContract, signer } = useWeb3();
+  const [ethAmount, setEthAmount] = useState("");
+  const [tokenAmount, setTokenAmount] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [isBuying, setIsBuying] = useState(true); // true: ETH -> Token, false: Token -> ETH
+  const [exchangeRate, setExchangeRate] = useState(1000); // 1 ETH = 1000 YDT
 
   // 监听输入变化，自动计算兑换金额
   useEffect(() => {
     if (isBuying) {
       if (ethAmount) {
-        const amount = Number(ethAmount) * exchangeRate
-        setTokenAmount(amount.toString())
+        const amount = Number(ethAmount) * exchangeRate;
+        setTokenAmount(amount.toString());
       } else {
-        setTokenAmount("")
+        setTokenAmount("");
       }
     } else {
       if (tokenAmount) {
-        const amount = Number(tokenAmount) / exchangeRate
-        setEthAmount(amount.toString())
+        const amount = Number(tokenAmount) / exchangeRate;
+        setEthAmount(amount.toString());
       } else {
-        setEthAmount("")
+        setEthAmount("");
       }
     }
-  }, [ethAmount, tokenAmount, isBuying, exchangeRate])
+  }, [ethAmount, tokenAmount, isBuying, exchangeRate]);
 
   const handleFromInputChange = (value: string) => {
     if (isBuying) {
-      setEthAmount(value)
+      setEthAmount(value);
     } else {
-      setTokenAmount(value)
+      setTokenAmount(value);
     }
-  }
+  };
 
   const buyWithETH = async (ethAmount: string) => {
-    if (!ydContract || !signer) return
+    if (!ydContract || !signer) return;
     try {
-      const amount = ethers.utils.parseEther(ethAmount)
-      const tx = await ydContract.buyWithETH({ value: amount })
-      await tx.wait()
+      const amount = ethers.utils.parseEther(ethAmount);
+      const tx = await ydContract.buyWithETH({ value: amount });
+      await tx.wait();
     } catch (error) {
-      console.error("Error buying tokens:", error)
-      throw error
+      console.error("Error buying tokens:", error);
+      throw error;
     }
-  }
+  };
 
   const sellTokens = async (tokenAmount: string) => {
-    if (!ydContract || !signer) return
+    if (!ydContract || !signer) return;
     try {
-      const amount = ethers.utils.parseEther(tokenAmount)
-      const tx = await ydContract.sellTokens(amount)
-      await tx.wait()
+      const tx = await ydContract.sellTokens(tokenAmount);
+      await tx.wait();
     } catch (error) {
-      console.error("Error selling tokens:", error)
-      throw error
+      console.error("Error selling tokens:", error);
+      throw error;
     }
-  }
+  };
 
   const handleBuyWithETH = async () => {
-    if (!ethAmount) return
+    if (!ethAmount) return;
     try {
-      setIsLoading(true)
-      await buyWithETH(ethAmount)
-      setEthAmount("")
+      setIsLoading(true);
+      await buyWithETH(ethAmount);
+      setEthAmount("");
+      toast.success("Transaction Successful!", {
+        description: `Successfully purchased ${tokenAmount} YDT`,
+      });
     } catch (error) {
-      console.error("Error buying tokens:", error)
+      console.error("Error buying tokens:", error);
+      toast.error("Transaction Failed", {
+        description: "Please check your balance and network connection",
+      });
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   const handleSellTokens = async () => {
-    if (!tokenAmount) return
+    if (!tokenAmount) return;
     try {
-      setIsLoading(true)
-      await sellTokens(tokenAmount)
-      setTokenAmount("")
+      setIsLoading(true);
+      await sellTokens(tokenAmount);
+      setTokenAmount("");
+      toast.success("Token Sale Successful!", {
+        description: `Successfully sold ${tokenAmount} YDT`,
+      });
     } catch (error) {
-      console.error("Error selling tokens:", error)
+      console.error("Error selling tokens:", error);
+      toast.error("Sale Failed", {
+        description: "Please check your token balance and network connection",
+      });
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   const handleSwapDirection = () => {
-    setIsBuying(!isBuying)
+    setIsBuying(!isBuying);
     // 交换输入值
-    const temp = ethAmount
-    setEthAmount(tokenAmount)
-    setTokenAmount(temp)
-  }
+    const temp = ethAmount;
+    setEthAmount(tokenAmount);
+    setTokenAmount(temp);
+  };
 
   const handleSwap = async () => {
     if (isBuying) {
-      await handleBuyWithETH()
+      await handleBuyWithETH();
     } else {
-      await handleSellTokens()
+      await handleSellTokens();
     }
-  }
+  };
 
   return (
     <main className="min-h-screen bg-black relative overflow-hidden">
+      <Toaster richColors position="top-center" />
       {/* Tech-focused background */}
       <div className="absolute inset-0">
         {/* Digital grid pattern */}
@@ -129,9 +149,19 @@ export default function SwapPage() {
         />
 
         {/* Circuit lines */}
-        <svg className="absolute inset-0 w-full h-full opacity-5" xmlns="http://www.w3.org/2000/svg">
+        <svg
+          className="absolute inset-0 w-full h-full opacity-5"
+          xmlns="http://www.w3.org/2000/svg"
+        >
           <defs>
-            <pattern id="circuit" x="0" y="0" width="200" height="200" patternUnits="userSpaceOnUse">
+            <pattern
+              id="circuit"
+              x="0"
+              y="0"
+              width="200"
+              height="200"
+              patternUnits="userSpaceOnUse"
+            >
               <path
                 d="M100,0 L100,50 L150,50 L150,100 L200,100 M0,100 L50,100 L50,150 L100,150 L100,200 M100,100 L150,150 M50,50 L100,100"
                 fill="none"
@@ -152,14 +182,19 @@ export default function SwapPage() {
 
         <div className="container mx-auto px-4 py-12">
           <div className="max-w-md mx-auto">
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+            >
               <Card className="bg-black/80 border border-purple-500/20 backdrop-blur-sm text-white shadow-md">
                 <CardHeader className="border-b border-purple-500/10 pb-4">
                   <CardTitle className="text-2xl text-center">
-                    <span className="text-purple-400">ETH</span> / <span className="text-pink-400">YDT</span> Swap
+                    <span className="text-purple-400">ETH</span> /{" "}
+                    <span className="text-pink-400">YDT</span> Swap
                   </CardTitle>
                   <CardDescription className="text-center text-gray-400">
-                    {isBuying 
+                    {isBuying
                       ? "Exchange your ETH for Yideng tokens to access premium courses"
                       : "Exchange your Yideng tokens back to ETH"}
                   </CardDescription>
@@ -168,7 +203,9 @@ export default function SwapPage() {
                 <CardContent className="pt-6">
                   {!address ? (
                     <div className="text-center py-8">
-                      <p className="mb-4 text-gray-400">Connect your wallet to swap tokens</p>
+                      <p className="mb-4 text-gray-400">
+                        Connect your wallet to swap tokens
+                      </p>
                       <div className="flex justify-center">
                         <ConnectButton.Custom>
                           {({
@@ -182,11 +219,11 @@ export default function SwapPage() {
                             return (
                               <div
                                 {...(!mounted && {
-                                  'aria-hidden': true,
-                                  'style': {
+                                  "aria-hidden": true,
+                                  style: {
                                     opacity: 0,
-                                    pointerEvents: 'none',
-                                    userSelect: 'none',
+                                    pointerEvents: "none",
+                                    userSelect: "none",
                                   },
                                 })}
                               >
@@ -199,11 +236,11 @@ export default function SwapPage() {
                                       >
                                         Connect Wallet
                                       </button>
-                                    )
+                                    );
                                   }
                                 })()}
                               </div>
-                            )
+                            );
                           }}
                         </ConnectButton.Custom>
                       </div>
@@ -213,7 +250,8 @@ export default function SwapPage() {
                       <div className="mb-2 flex justify-between items-center">
                         <span className="text-sm text-gray-400">From</span>
                         <span className="text-sm text-gray-400">
-                          Balance: {isBuying ? balance : tokenBalance} {isBuying ? "ETH" : "YDT"}
+                          Balance: {isBuying ? balance : tokenBalance}{" "}
+                          {isBuying ? "ETH" : "YDT"}
                         </span>
                       </div>
                       <div className="mb-6 relative">
@@ -221,7 +259,9 @@ export default function SwapPage() {
                           type="number"
                           placeholder="0.0"
                           value={isBuying ? ethAmount : tokenAmount}
-                          onChange={(e) => handleFromInputChange(e.target.value)}
+                          onChange={(e) =>
+                            handleFromInputChange(e.target.value)
+                          }
                           className="bg-black/50 border-purple-500/30 text-white p-6 text-xl"
                         />
                         <div className="absolute right-3 top-1/2 transform -translate-y-1/2 bg-purple-600 px-2 py-1 rounded text-sm">
@@ -241,7 +281,8 @@ export default function SwapPage() {
                       <div className="mb-2 flex justify-between items-center">
                         <span className="text-sm text-gray-400">To</span>
                         <span className="text-sm text-gray-400">
-                          Balance: {isBuying ? tokenBalance : balance} {isBuying ? "YDT" : "ETH"}
+                          Balance: {isBuying ? tokenBalance : balance}{" "}
+                          {isBuying ? "YDT" : "ETH"}
                         </span>
                       </div>
                       <div className="mb-6 relative">
@@ -261,7 +302,9 @@ export default function SwapPage() {
                       <div className="bg-purple-900/20 border border-purple-500/20 rounded p-3 mb-4">
                         <div className="flex justify-between items-center text-sm">
                           <span className="text-gray-400">Exchange Rate</span>
-                          <span className="text-white">1 ETH = {exchangeRate} YDT</span>
+                          <span className="text-white">
+                            1 ETH = {exchangeRate} YDT
+                          </span>
                         </div>
                         <div className="flex justify-between items-center text-sm mt-2">
                           <span className="text-gray-400">Network Fee</span>
@@ -284,42 +327,19 @@ export default function SwapPage() {
                           <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                           Processing Swap...
                         </>
+                      ) : isBuying ? (
+                        "Buy Tokens"
                       ) : (
-                        isBuying ? "Buy Tokens" : "Sell Tokens"
+                        "Sell Tokens"
                       )}
                     </Button>
                   )}
                 </CardFooter>
               </Card>
             </motion.div>
-
-            {/* Technical data display */}
-            {address && (
-              <motion.div
-                className="mt-8 text-white text-sm"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.6 }}
-              >
-                <div className="bg-black/50 border border-purple-500/20 rounded-lg p-4">
-                  <h3 className="text-purple-400 mb-2 font-medium">Transaction Data</h3>
-                  <div className="font-mono text-xs text-gray-400 overflow-x-auto">
-                    <div className="mb-1">
-                      Method: <span className="text-green-400">swap(address,uint256)</span>
-                    </div>
-                    <div className="mb-1">
-                      Gas Estimate: <span className="text-yellow-400">~85,000</span>
-                    </div>
-                    <div>
-                      Contract: <span className="text-blue-400">0x1234...7890</span>
-                    </div>
-                  </div>
-                </div>
-              </motion.div>
-            )}
           </div>
         </div>
       </div>
     </main>
-  )
+  );
 }

@@ -1,14 +1,22 @@
-"use client"
+"use client";
 
-import { useState, useRef, useEffect } from "react"
-import { useParams } from "next/navigation"
-import Navbar from "@/components/navbar"
-import { Card, CardContent } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Play, Pause, BookOpen, Clock, Users, Award, ChevronRight } from "lucide-react"
-import { useWeb3 } from "@/lib/context/web3-context"
-import { motion } from "framer-motion"
+import { useState, useRef, useEffect } from "react";
+import { useParams } from "next/navigation";
+import Navbar from "@/components/navbar";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Play,
+  Pause,
+  BookOpen,
+  Clock,
+  Users,
+  Award,
+  ChevronRight,
+} from "lucide-react";
+import { useWeb3 } from "@/lib/context/web3-context";
+import { motion } from "framer-motion";
 
 // Sample course data
 const COURSES = [
@@ -24,7 +32,8 @@ const COURSES = [
     rating: 4.8,
     students: 1245,
     instructor: "Alex Johnson",
-    videoUrl: "https://sample-videos.com/video123/mp4/720/big_buck_bunny_720p_1mb.mp4",
+    videoUrl:
+      "https://sample-videos.com/video123/mp4/720/big_buck_bunny_720p_1mb.mp4",
     modules: [
       { title: "Introduction to Blockchain", duration: "30 min" },
       { title: "Distributed Ledger Technology", duration: "45 min" },
@@ -45,7 +54,8 @@ const COURSES = [
     rating: 4.9,
     students: 876,
     instructor: "Sarah Williams",
-    videoUrl: "https://sample-videos.com/video123/mp4/720/big_buck_bunny_720p_1mb.mp4",
+    videoUrl:
+      "https://sample-videos.com/video123/mp4/720/big_buck_bunny_720p_1mb.mp4",
     modules: [
       { title: "Solidity Basics", duration: "60 min" },
       { title: "Smart Contract Structure", duration: "45 min" },
@@ -56,28 +66,28 @@ const COURSES = [
     ],
   },
   // Add more courses with the same structure
-]
+];
 
 export default function CourseDetailPage() {
-  const { id } = useParams()
-  const { address, connectWallet } = useWeb3()
-  const [isPlaying, setIsPlaying] = useState(false)
-  const [currentTime, setCurrentTime] = useState(0)
-  const [duration, setDuration] = useState(0)
-  const videoRef = useRef<HTMLVideoElement>(null)
-  const [scrollY, setScrollY] = useState(0)
+  const { id } = useParams();
+  const { address, connectWallet } = useWeb3();
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [duration, setDuration] = useState(0);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const [scrollY, setScrollY] = useState(0);
 
   useEffect(() => {
     const handleScroll = () => {
-      setScrollY(window.scrollY)
-    }
+      setScrollY(window.scrollY);
+    };
 
-    window.addEventListener("scroll", handleScroll)
-    return () => window.removeEventListener("scroll", handleScroll)
-  }, [])
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
-  const courseId = Number(id)
-  const course = COURSES.find((c) => c.id === courseId)
+  const courseId = Number(id);
+  const course = COURSES.find((c) => c.id === courseId);
 
   if (!course) {
     return (
@@ -90,39 +100,39 @@ export default function CourseDetailPage() {
           </div>
         </div>
       </main>
-    )
+    );
   }
 
   const togglePlay = () => {
     if (videoRef.current) {
       if (isPlaying) {
-        videoRef.current.pause()
+        videoRef.current.pause();
       } else {
-        videoRef.current.play()
+        videoRef.current.play();
       }
-      setIsPlaying(!isPlaying)
+      setIsPlaying(!isPlaying);
     }
-  }
+  };
 
   const handleTimeUpdate = () => {
     if (videoRef.current) {
-      setCurrentTime(videoRef.current.currentTime)
+      setCurrentTime(videoRef.current.currentTime);
     }
-  }
+  };
 
   const handleLoadedMetadata = () => {
     if (videoRef.current) {
-      setDuration(videoRef.current.duration)
+      setDuration(videoRef.current.duration);
     }
-  }
+  };
 
   const formatTime = (time: number) => {
-    const minutes = Math.floor(time / 60)
-    const seconds = Math.floor(time % 60)
-    return `${minutes}:${seconds < 10 ? "0" : ""}${seconds}`
-  }
+    const minutes = Math.floor(time / 60);
+    const seconds = Math.floor(time % 60);
+    return `${minutes}:${seconds < 10 ? "0" : ""}${seconds}`;
+  };
 
-  const progress = duration ? (currentTime / duration) * 100 : 0
+  const progress = duration ? (currentTime / duration) * 100 : 0;
 
   return (
     <main className="min-h-screen bg-black relative overflow-hidden">
@@ -179,7 +189,10 @@ export default function CourseDetailPage() {
                         animate={{ opacity: 1, scale: 1 }}
                         transition={{ delay: 0.3 }}
                       >
-                        <Button onClick={connectWallet} className="bg-purple-600 hover:bg-purple-700">
+                        <Button
+                          onClick={connectWallet}
+                          className="bg-purple-600 hover:bg-purple-700"
+                        >
                           Connect Wallet
                         </Button>
                       </motion.div>
@@ -208,8 +221,17 @@ export default function CourseDetailPage() {
                 {address && (
                   <div className="p-4">
                     <div className="flex items-center justify-between mb-2">
-                      <Button variant="ghost" size="icon" onClick={togglePlay} className="text-white">
-                        {isPlaying ? <Pause className="h-6 w-6" /> : <Play className="h-6 w-6" />}
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={togglePlay}
+                        className="text-white"
+                      >
+                        {isPlaying ? (
+                          <Pause className="h-6 w-6" />
+                        ) : (
+                          <Play className="h-6 w-6" />
+                        )}
                       </Button>
                       <div className="text-white text-sm">
                         {formatTime(currentTime)} / {formatTime(duration)}
@@ -269,15 +291,23 @@ export default function CourseDetailPage() {
               >
                 <Tabs defaultValue="overview" className="mb-8">
                   <TabsList className="bg-black/50 border border-purple-500/20">
-                    <TabsTrigger value="overview" className="data-[state=active]:bg-purple-600">
+                    <TabsTrigger
+                      value="overview"
+                      className="data-[state=active]:bg-purple-600"
+                    >
                       Overview
                     </TabsTrigger>
-                    <TabsTrigger value="curriculum" className="data-[state=active]:bg-purple-600">
+                    <TabsTrigger
+                      value="curriculum"
+                      className="data-[state=active]:bg-purple-600"
+                    >
                       Curriculum
                     </TabsTrigger>
                   </TabsList>
                   <TabsContent value="overview" className="text-white mt-4">
-                    <p className="text-gray-300 leading-relaxed">{course.longDescription}</p>
+                    <p className="text-gray-300 leading-relaxed">
+                      {course.longDescription}
+                    </p>
                   </TabsContent>
                   <TabsContent value="curriculum" className="text-white mt-4">
                     <div className="space-y-4">
@@ -365,5 +395,5 @@ export default function CourseDetailPage() {
         </div>
       </div>
     </main>
-  )
+  );
 }

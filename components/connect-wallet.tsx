@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { getNonce, getToken } from "@/lib/api/user";
 import { ethers } from "ethers";
 import Link from "next/link";
@@ -33,36 +33,39 @@ export function ConnectWallet() {
   } = useWeb3();
   const [mounted, setMounted] = useState(false);
 
+  // 初始化时检查认证状态
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  useEffect(() => {
-    const handleLogin = async () => {
-      if (address && isConnected && !isAuthenticated) {
-        try {
-          // 1. 获取 nonce
-          const response = await getNonce(address);
-          const nonce = response.data.nonce;
-          // 2. 使用钱包签名
-          if (typeof window.ethereum !== "undefined") {
-            const provider = new ethers.providers.Web3Provider(window.ethereum);
-            const signer = provider.getSigner();
-            const signature = await signer.signMessage(nonce);
-            const { data:{token} } = await getToken(address, signature, nonce);
-            localStorage.setItem("token", JSON.stringify(token));
-            setIsAuthenticated(true);
-          }
-        } catch (error) {
-          console.error("Login failed:", error);
+  // 处理登录逻辑
+  const handleLogin = useCallback(async () => {
+    if (address && isConnected && mounted) {
+      try {
+        const response = await getNonce(address);
+        const nonce = response.data.nonce;
+
+        if (typeof window.ethereum !== "undefined") {
+          const provider = new ethers.providers.Web3Provider(window.ethereum);
+          const signer = provider.getSigner();
+          const signature = await signer.signMessage(nonce);
+          const {
+            data: { token },
+          } = await getToken(address, signature, nonce);
+          localStorage.setItem("token", JSON.stringify(token));
+          setIsAuthenticated(true);
         }
+      } catch (error) {
+        console.error("Login failed:", error);
       }
-    };
-    const token = localStorage.getItem("token");
-    if (address && isConnected && !isAuthenticated && !token) {
+    }
+  }, [address, isConnected, isAuthenticated, mounted, setIsAuthenticated]);
+
+  useEffect(() => {
+    if (!localStorage.getItem("token")) {
       handleLogin();
     }
-  }, [address, isConnected, isAuthenticated, setIsAuthenticated]);
+  }, [handleLogin]);
 
   if (!mounted) {
     return null;
