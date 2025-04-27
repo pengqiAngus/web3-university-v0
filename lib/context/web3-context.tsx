@@ -56,8 +56,8 @@ const config = getDefaultConfig({
   ssr: true,
 });
 
-const COURSE_MARKET_ADDRESS = process.env.COURSE_MARKET_ADDRESS;
-const YIDENG_TOKEN_ADDRESS = process.env.YIDENG_TOKEN_ADDRESS;
+const COURSE_MARKET_ADDRESS = process.env.NEXT_PUBLIC_COURSE_MARKET_ADDRESS;
+const YIDENG_TOKEN_ADDRESS = process.env.NEXT_PUBLIC_YIDENG_TOKEN_ADDRESS;
 interface Web3ContextType {
   address: string | null;
   balance: string;

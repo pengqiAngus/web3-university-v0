@@ -125,6 +125,7 @@ export default function CourseDetailPage() {
       if (courseContract && address) {
         try {
           const id = await courseContract.web2ToCourseId(course.id);
+          debugger;
           const hasCourse = await courseContract.userCourses(address, id);
           setHasCourse(hasCourse);
         } catch (error) {

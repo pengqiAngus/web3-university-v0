@@ -4,10 +4,10 @@ import { fetchApi } from "@/lib/api/fetch";
 
 export async function GET(
   request: Request,
-  { params }: { params: { id: string } }
+  context: { params: { id: string } }
 ) {
   try {
-    const courseId = params.id;
+    const courseId = context.params.id;
 
     const course = await fetchApi<Course>(`course/detail/${courseId}`);
 
