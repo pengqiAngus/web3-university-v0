@@ -17,65 +17,29 @@ import {
 } from "lucide-react";
 import { useWeb3 } from "@/lib/context/web3-context";
 import { motion } from "framer-motion";
-
-// Sample course data
-const COURSES = [
-  {
-    id: 1,
-    title: "Blockchain Fundamentals",
-    description: "Learn the basics of blockchain technology and how it works",
-    longDescription:
-      "This comprehensive course covers the fundamentals of blockchain technology, including distributed ledgers, consensus mechanisms, cryptography, and the history of blockchain. You'll gain a solid understanding of how blockchain works and its potential applications across various industries.",
-    image: "/placeholder.svg?height=200&width=400",
-    duration: "4 hours",
-    level: "Beginner",
-    rating: 4.8,
-    students: 1245,
-    instructor: "Alex Johnson",
-    videoUrl:
-      "https://sample-videos.com/video123/mp4/720/big_buck_bunny_720p_1mb.mp4",
-    modules: [
-      { title: "Introduction to Blockchain", duration: "30 min" },
-      { title: "Distributed Ledger Technology", duration: "45 min" },
-      { title: "Consensus Mechanisms", duration: "60 min" },
-      { title: "Cryptography Basics", duration: "45 min" },
-      { title: "Blockchain Use Cases", duration: "60 min" },
-    ],
-  },
-  {
-    id: 2,
-    title: "Smart Contract Development",
-    description: "Build and deploy smart contracts on Ethereum",
-    longDescription:
-      "Master the art of smart contract development on the Ethereum blockchain. This course teaches you Solidity programming from the ground up, along with best practices for security, testing, and deployment. By the end, you'll be able to create and deploy your own smart contracts.",
-    image: "/placeholder.svg?height=200&width=400",
-    duration: "8 hours",
-    level: "Intermediate",
-    rating: 4.9,
-    students: 876,
-    instructor: "Sarah Williams",
-    videoUrl:
-      "https://sample-videos.com/video123/mp4/720/big_buck_bunny_720p_1mb.mp4",
-    modules: [
-      { title: "Solidity Basics", duration: "60 min" },
-      { title: "Smart Contract Structure", duration: "45 min" },
-      { title: "Security Best Practices", duration: "90 min" },
-      { title: "Testing Smart Contracts", duration: "60 min" },
-      { title: "Deployment and Verification", duration: "45 min" },
-      { title: "Advanced Patterns", duration: "90 min" },
-    ],
-  },
-  // Add more courses with the same structure
-];
+import { useCourseDetail } from "@/lib/hooks/use-course-db";
+import { LoadingScreen } from "@/components/loading/LoadingScreen";
+import { Course } from "@/lib/types/course";
+import { Toaster, toast } from "sonner";
 
 export default function CourseDetailPage() {
   const { id } = useParams();
-  const { address, connectWallet } = useWeb3();
+  const {
+    courseContract,
+    address,
+    tokenBalance,
+    setTokenBalance,
+    ydContract,
+    connectWallet,
+  } = useWeb3();
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const videoRef = useRef<HTMLVideoElement>(null);
   const [scrollY, setScrollY] = useState(0);
+  const [hasCourse, setHasCourse] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { data: course = {} as Course, loading, error } = useCourseDetail(id);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -86,10 +50,7 @@ export default function CourseDetailPage() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  const courseId = Number(id);
-  const course = COURSES.find((c) => c.id === courseId);
-
-  if (!course) {
+  if (!id) {
     return (
       <main className="min-h-screen bg-black relative overflow-hidden">
         <div className="relative z-10">
@@ -102,6 +63,80 @@ export default function CourseDetailPage() {
       </main>
     );
   }
+
+  if (error) {
+    return <ErrorScreen />;
+  }
+
+  const buyCourse = async (courseId: string) => {
+    try {
+      setIsSubmitting(true);
+      if (!courseContract || !address) {
+        throw new Error("请先连接钱包");
+      }
+      if (!tokenBalance || Number(tokenBalance) < Number(course.price)) {
+        throw new Error("代币余额不足，无法购买该课程");
+      }
+
+      // 显示加载状态
+      toast.loading("正在检查课程信息...");
+
+      // 检查课程是否存在
+      try {
+        const web2CourseId = course.id.toString();
+
+        toast.loading("交易处理中...", {
+          description: "请等待交易确认",
+        });
+
+        // 调用购买方法
+
+        const tx = await courseContract.purchaseCourse(web2CourseId);
+        await tx.wait();
+
+        // 更新用户课程状态
+        setHasCourse(true);
+
+        // 更新用户代币余额
+        if (ydContract && address) {
+          const newBalance = await ydContract.balanceOf(address);
+          setTokenBalance(newBalance.toString());
+        }
+
+        toast.success("购买成功！", {
+          description: "课程已添加到您的学习列表",
+        });
+      } catch (error) {
+        console.error("课程检查失败:", error);
+        throw new Error("课程不存在或尚未上链");
+      }
+    } catch (error) {
+      console.error("购买课程出错:", error);
+      toast.error("购买失败", {
+        description: error instanceof Error ? error.message : "请稍后重试",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  useEffect(() => {
+    const initUserCourses = async () => {
+      if (courseContract && address) {
+        try {
+          const id = await courseContract.web2ToCourseId(course.id);
+          const hasCourse = await courseContract.userCourses(address, id);
+          setHasCourse(hasCourse);
+        } catch (error) {
+          console.error("Error initializing user courses:", error);
+          toast.error("Failed to load your purchased courses");
+        }
+      }
+    };
+    if (course?.name) {
+      initUserCourses();
+    }
+  }, [address, course]);
 
   const togglePlay = () => {
     if (videoRef.current) {
@@ -134,8 +169,15 @@ export default function CourseDetailPage() {
 
   const progress = duration ? (currentTime / duration) * 100 : 0;
 
-  return (
+  return loading ? (
+    <LoadingScreen
+      title="Loading Courses..."
+      subtitle="Please wait while we fetch the latest course information"
+      status="Syncing course data..."
+    />
+  ) : (
     <main className="min-h-screen bg-black relative overflow-hidden">
+      <Toaster richColors position="top-center" />
       {/* Circuit board pattern background */}
       <div
         className="absolute inset-0 opacity-5"
@@ -167,37 +209,12 @@ export default function CourseDetailPage() {
                 <div className="relative">
                   <video
                     ref={videoRef}
-                    src={course.videoUrl}
+                    src={course?.fileUrl}
                     className="w-full aspect-video"
                     onTimeUpdate={handleTimeUpdate}
                     onLoadedMetadata={handleLoadedMetadata}
                     onClick={togglePlay}
                   />
-
-                  {!address && (
-                    <div className="absolute inset-0 bg-black/80 backdrop-blur-sm flex flex-col items-center justify-center">
-                      <motion.p
-                        className="text-white mb-4"
-                        initial={{ opacity: 0, y: -10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.2 }}
-                      >
-                        Connect your wallet to watch this course
-                      </motion.p>
-                      <motion.div
-                        initial={{ opacity: 0, scale: 0.9 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        transition={{ delay: 0.3 }}
-                      >
-                        <Button
-                          onClick={connectWallet}
-                          className="bg-purple-600 hover:bg-purple-700"
-                        >
-                          Connect Wallet
-                        </Button>
-                      </motion.div>
-                    </div>
-                  )}
 
                   {!isPlaying && address && (
                     <motion.div
@@ -257,7 +274,7 @@ export default function CourseDetailPage() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: 0.2 }}
               >
-                {course.title}
+                {course.name}
               </motion.h1>
 
               <motion.div
@@ -268,19 +285,19 @@ export default function CourseDetailPage() {
               >
                 <div className="flex items-center text-gray-400">
                   <Clock className="h-5 w-5 mr-2" />
-                  <span>{course.duration}</span>
+                  <span>{course.duration} hours</span>
                 </div>
                 <div className="flex items-center text-gray-400">
                   <BookOpen className="h-5 w-5 mr-2" />
-                  <span>{course.level}</span>
-                </div>
-                <div className="flex items-center text-gray-400">
-                  <Users className="h-5 w-5 mr-2" />
-                  <span>{course.students} students</span>
+                  <span>{course.category}</span>
                 </div>
                 <div className="flex items-center text-gray-400">
                   <Award className="h-5 w-5 mr-2" />
-                  <span>Instructor: {course.instructor}</span>
+                  <span>Price: ${course.price}</span>
+                </div>
+                <div className="flex items-center text-gray-400">
+                  <span className="text-gray-400">Created:</span>
+                  <span>{new Date(course.createdAt).toLocaleDateString()}</span>
                 </div>
               </motion.div>
 
@@ -297,43 +314,25 @@ export default function CourseDetailPage() {
                     >
                       Overview
                     </TabsTrigger>
-                    <TabsTrigger
+                    {/* <TabsTrigger
                       value="curriculum"
                       className="data-[state=active]:bg-purple-600"
                     >
                       Curriculum
-                    </TabsTrigger>
+                    </TabsTrigger> */}
                   </TabsList>
                   <TabsContent value="overview" className="text-white mt-4">
                     <p className="text-gray-300 leading-relaxed">
-                      {course.longDescription}
+                      {course.description}
                     </p>
                   </TabsContent>
                   <TabsContent value="curriculum" className="text-white mt-4">
                     <div className="space-y-4">
-                      {course.modules.map((module, index) => (
-                        <motion.div
-                          key={index}
-                          initial={{ opacity: 0, y: 10 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ duration: 0.3, delay: index * 0.1 }}
-                        >
-                          <Card className="bg-black/50 border border-purple-500/20 hover:border-purple-500/40 transition-colors">
-                            <CardContent className="p-4 flex items-center justify-between">
-                              <div className="flex items-center">
-                                <div className="bg-purple-600/20 text-purple-500 rounded-full w-8 h-8 flex items-center justify-center mr-3">
-                                  {index + 1}
-                                </div>
-                                <span>{module.title}</span>
-                              </div>
-                              <div className="flex items-center text-gray-400">
-                                <span className="mr-2">{module.duration}</span>
-                                <ChevronRight className="h-5 w-5" />
-                              </div>
-                            </CardContent>
-                          </Card>
-                        </motion.div>
-                      ))}
+                      <Card className="bg-black/50 border border-purple-500/20 hover:border-purple-500/40 transition-colors">
+                        <CardContent className="p-4">
+                          <p className="text-gray-400">课程内容正在准备中...</p>
+                        </CardContent>
+                      </Card>
                     </div>
                   </TabsContent>
                 </Tabs>
@@ -349,8 +348,8 @@ export default function CourseDetailPage() {
                 <CardContent className="p-6">
                   <div className="relative overflow-hidden rounded-lg mb-4 group">
                     <img
-                      src={course.image || "/placeholder.svg"}
-                      alt={course.title}
+                      src={course.imgUrl || "/placeholder.svg"}
+                      alt={course.name}
                       className="w-full h-48 object-cover transition-transform duration-700 group-hover:scale-110"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black to-transparent opacity-60" />
@@ -363,24 +362,38 @@ export default function CourseDetailPage() {
                   <div className="space-y-3 mb-6">
                     <div className="flex justify-between">
                       <span className="text-gray-400">Duration:</span>
-                      <span>{course.duration}</span>
+                      <span>{course.duration} hours</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-400">Level:</span>
-                      <span>{course.level}</span>
+                      <span className="text-gray-400">Category:</span>
+                      <span>{course.category}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-400">Students:</span>
-                      <span>{course.students}</span>
+                      <span className="text-gray-400">Price:</span>
+                      <span>${course.price}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-400">Modules:</span>
-                      <span>{course.modules.length}</span>
+                      <span className="text-gray-400">Created:</span>
+                      <span>
+                        {new Date(course.createdAt).toLocaleDateString()}
+                      </span>
                     </div>
                   </div>
 
-                  <Button className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 relative overflow-hidden group">
-                    <span className="relative z-10">Enroll Now</span>
+                  <Button
+                    className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 relative overflow-hidden group"
+                    onClick={() => {
+                      buyCourse(course.id);
+                    }}
+                    disabled={isSubmitting || hasCourse}
+                  >
+                    <span className="relative z-10">
+                      {isSubmitting
+                        ? "购买中..."
+                        : hasCourse
+                        ? "已购买"
+                        : "立即购买"}
+                    </span>
                     <motion.div
                       className="absolute inset-0 bg-gradient-to-r from-pink-600 to-purple-600"
                       initial={{ x: "-100%" }}

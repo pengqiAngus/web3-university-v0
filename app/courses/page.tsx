@@ -15,108 +15,12 @@ import { Input } from "@/components/ui/input";
 import { Search, Clock, DollarSign, BookOpen } from "lucide-react";
 import { motion } from "framer-motion";
 import { useCourseList } from "@/lib/hooks/use-course-db";
-import { useWeb3 } from "@/lib/context/web3-context";
-import { Toaster, toast } from "sonner";
 import { LoadingScreen } from "@/components/loading/LoadingScreen";
 
 export default function CoursesPage() {
   const { data: courses = [], isLoading, error } = useCourseList();
   const [searchTerm, setSearchTerm] = useState("");
-  const { courseContract, address, tokenBalance, setTokenBalance, ydContract } =
-    useWeb3();
-  const [userCourses, setUserCourses] = useState<Record<string, boolean>>({});
   const [scrollY, setScrollY] = useState(0);
-  const [purchasingCourseId, setPurchasingCourseId] = useState<string | null>(
-    null
-  );
-  const [isInitializingCourses, setIsInitializingCourses] = useState(false);
-
-  const buyCourse = async (courseId: string) => {
-    try {
-      setPurchasingCourseId(courseId);
-      if (!courseContract || !address) {
-        throw new Error("Please connect your wallet first");
-      }
-
-      const course = courses.find((c) => c.id === courseId);
-      console.log("course", course);
-      if (!course) {
-        throw new Error("Course not found");
-      }
-      if (!tokenBalance || Number(tokenBalance) < Number(course.price)) {
-        throw new Error("Insufficient token balance to purchase this course");
-      }
-
-      toast.promise(
-        (async () => {
-          const tx = await courseContract.purchaseCourse(courseId);
-          await tx.wait();
-          setUserCourses((prev) => ({
-            ...prev,
-            [courseId]: true,
-          }));
-        })(),
-        {
-          loading: "Purchasing course...",
-          success: () => {
-            ydContract?.balanceOf(address).then((balance) => {
-              setTokenBalance(balance.toString());
-            });
-            setPurchasingCourseId(null);
-            return "Course purchased successfully!";
-          },
-          error: (err) => {
-            setPurchasingCourseId(null);
-            return `${
-              err instanceof Error
-                ? err.message
-                : "Purchase failed, please try again"
-            }`;
-          },
-        }
-      );
-    } catch (error) {
-      setPurchasingCourseId(null);
-      console.error("Error purchasing course:", error);
-      toast.error(
-        error instanceof Error
-          ? error.message
-          : "Purchase failed, please try again",
-        {
-          style: {
-            background: "rgba(0, 0, 0, 0.9)",
-            border: "1px solid rgba(138, 43, 226, 0.2)",
-            color: "white",
-          },
-        }
-      );
-    }
-  };
-
-  useEffect(() => {
-    const initUserCourses = async () => {
-      if (courseContract && address) {
-        setIsInitializingCourses(true);
-        try {
-          const coursesMap: Record<string, boolean> = {};
-          for (const course of courses) {
-            const id = await courseContract.web2ToCourseId(course.id);
-            const hasCourse = await courseContract.userCourses(address, id);
-            coursesMap[course.id] = hasCourse;
-          }
-          setUserCourses(coursesMap);
-        } catch (error) {
-          console.error("Error initializing user courses:", error);
-          toast.error("Failed to load your purchased courses");
-        } finally {
-          setIsInitializingCourses(false);
-        }
-      }
-    };
-    if (courses.length > 0) {
-      initUserCourses();
-    }
-  }, [address, courses]);
 
   const filteredCourses = courses?.filter(
     (course) =>
@@ -150,19 +54,6 @@ export default function CoursesPage() {
         />
       ) : (
         <main className="min-h-screen bg-black relative overflow-hidden">
-          <Toaster
-            theme="dark"
-            position="top-center"
-            toastOptions={{
-              style: {
-                background: "rgba(0, 0, 0, 0.9)",
-                border: "1px solid rgba(138, 43, 226, 0.2)",
-                color: "white",
-                backdropFilter: "blur(8px)",
-              },
-              className: "my-toast-class",
-            }}
-          />
           {/* Hexagon grid background */}
           <div
             className="absolute inset-0 opacity-10"
@@ -261,36 +152,11 @@ export default function CoursesPage() {
                       </CardContent>
 
                       <CardFooter>
-                        {userCourses[course.id] ? (
-                          <Link
-                            href={`/courses/${course.id}`}
-                            className="w-full"
-                          >
-                            <Button className="w-full text-white bg-purple-600/80 hover:bg-purple-600 group-hover:bg-purple-500 transition-colors">
-                              View Course
-                            </Button>
-                          </Link>
-                        ) : (
-                          <Button
-                            onClick={() => buyCourse(course.id)}
-                            disabled={
-                              purchasingCourseId !== null ||
-                              isInitializingCourses
-                            }
-                            className={`w-full text-white ${
-                              purchasingCourseId !== null ||
-                              isInitializingCourses
-                                ? "bg-purple-600/40 cursor-not-allowed"
-                                : "bg-purple-600/80 hover:bg-purple-600 group-hover:bg-purple-500"
-                            } transition-colors`}
-                          >
-                            {purchasingCourseId === course.id
-                              ? "Purchasing..."
-                              : isInitializingCourses
-                              ? "Loading..."
-                              : "Buy Course"}
+                        <Link href={`/courses/${course.id}`} className="w-full">
+                          <Button className="w-full text-white bg-purple-600/80 hover:bg-purple-600 group-hover:bg-purple-500 transition-colors">
+                            View Course
                           </Button>
-                        )}
+                        </Link>
                       </CardFooter>
                     </Card>
                   </motion.div>

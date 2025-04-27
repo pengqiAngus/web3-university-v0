@@ -22,11 +22,11 @@ export const useCourseList = () => {
 
 // 获取课程详情
 export const useCourseDetail = (courseId: number) => {
-  return useQuery<ApiResponse<Course>>({
+  return useQuery<Course>({
     queryKey: ["course", courseId],
     queryFn: async () => {
       const res = await fetch(`/api/course/detail/${courseId}`);
-      const data = await res.json();
+      const data: ApiResponse<Course> = await res.json();
       return data.data;
     },
     enabled: !!courseId,

@@ -7,7 +7,8 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
-    const courseId = parseInt(params.id);
+    const courseId = params.id;
+
     const course = await fetchApi<Course>(`course/detail/${courseId}`);
 
     return NextResponse.json({
