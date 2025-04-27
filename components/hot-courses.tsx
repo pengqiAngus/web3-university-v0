@@ -6,7 +6,7 @@ import { Clock, Star, BookOpen } from "lucide-react";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { useCourseList } from "@/lib/hooks/use-course-db";
-import ComponentLoading from "@/components/loading/componentLoading";
+import ComponentLoading from "@/components/loading/ComponentLoading";
 
 export default function HotCourses() {
   const { data, isLoading, error } = useCourseList();
