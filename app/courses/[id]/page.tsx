@@ -72,48 +72,48 @@ export default function CourseDetailPage() {
     try {
       setIsSubmitting(true);
       if (!courseContract || !address) {
-        throw new Error("请先连接钱包");
+        throw new Error("Please connect your wallet first");
       }
       if (!tokenBalance || Number(tokenBalance) < Number(course.price)) {
-        throw new Error("代币余额不足，无法购买该课程");
+        throw new Error("Insufficient token balance to purchase this course");
       }
 
-      // 显示加载状态
-      toast.loading("正在检查课程信息...");
+      // Show loading state
+      toast.loading("Checking course information...");
 
-      // 检查课程是否存在
+      // Check if course exists
       try {
         const web2CourseId = course.id.toString();
 
-        toast.loading("交易处理中...", {
-          description: "请等待交易确认",
+        toast.loading("Processing transaction...", {
+          description: "Please wait for confirmation",
         });
 
-        // 调用购买方法
-
+        // Call purchase method
         const tx = await courseContract.purchaseCourse(web2CourseId);
         await tx.wait();
 
-        // 更新用户课程状态
+        // Update user course status
         setHasCourse(true);
 
-        // 更新用户代币余额
+        // Update user token balance
         if (ydContract && address) {
           const newBalance = await ydContract.balanceOf(address);
           setTokenBalance(newBalance.toString());
         }
 
-        toast.success("购买成功！", {
-          description: "课程已添加到您的学习列表",
+        toast.success("Purchase successful!", {
+          description: "Course has been added to your learning list",
         });
       } catch (error) {
-        console.error("课程检查失败:", error);
-        throw new Error("课程不存在或尚未上链");
+        console.error("Course check failed:", error);
+        throw new Error("Course does not exist or is not on chain");
       }
     } catch (error) {
-      console.error("购买课程出错:", error);
-      toast.error("购买失败", {
-        description: error instanceof Error ? error.message : "请稍后重试",
+      console.error("Error purchasing course:", error);
+      toast.error("Purchase failed", {
+        description:
+          error instanceof Error ? error.message : "Please try again later",
       });
     } finally {
       setIsSubmitting(false);
@@ -139,6 +139,10 @@ export default function CourseDetailPage() {
   }, [address, course]);
 
   const togglePlay = () => {
+    if (!hasCourse) {
+      toast.error("Please purchase the course first");
+      return;
+    }
     if (videoRef.current) {
       if (isPlaying) {
         videoRef.current.pause();
@@ -213,10 +217,11 @@ export default function CourseDetailPage() {
                     className="w-full aspect-video"
                     onTimeUpdate={handleTimeUpdate}
                     onLoadedMetadata={handleLoadedMetadata}
-                    onClick={togglePlay}
+                    onClick={hasCourse ? togglePlay : undefined}
+                    style={{ cursor: hasCourse ? "pointer" : "not-allowed" }}
                   />
 
-                  {!isPlaying && address && (
+                  {!isPlaying && address && hasCourse && (
                     <motion.div
                       className="absolute inset-0 bg-black/50 flex items-center justify-center cursor-pointer"
                       onClick={togglePlay}
@@ -233,9 +238,19 @@ export default function CourseDetailPage() {
                       </motion.div>
                     </motion.div>
                   )}
+
+                  {!hasCourse && (
+                    <div className="absolute inset-0 bg-black/80 flex items-center justify-center">
+                      <div className="text-center">
+                        <div className="text-white text-xl mb-4">
+                          Please Purchase Course First
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
 
-                {address && (
+                {address && hasCourse && (
                   <div className="p-4">
                     <div className="flex items-center justify-between mb-2">
                       <Button
@@ -330,7 +345,9 @@ export default function CourseDetailPage() {
                     <div className="space-y-4">
                       <Card className="bg-black/50 border border-purple-500/20 hover:border-purple-500/40 transition-colors">
                         <CardContent className="p-4">
-                          <p className="text-gray-400">课程内容正在准备中...</p>
+                          <p className="text-gray-400">
+                            Course content is being prepared...
+                          </p>
                         </CardContent>
                       </Card>
                     </div>
@@ -389,10 +406,10 @@ export default function CourseDetailPage() {
                   >
                     <span className="relative z-10">
                       {isSubmitting
-                        ? "购买中..."
+                        ? "Purchasing..."
                         : hasCourse
-                        ? "已购买"
-                        : "立即购买"}
+                        ? "Purchased"
+                        : "Purchase Now"}
                     </span>
                     <motion.div
                       className="absolute inset-0 bg-gradient-to-r from-pink-600 to-purple-600"
