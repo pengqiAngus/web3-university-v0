@@ -24,14 +24,8 @@ import { Toaster, toast } from "sonner";
 
 export default function CourseDetailPage() {
   const { id } = useParams();
-  const {
-    courseContract,
-    address,
-    tokenBalance,
-    setTokenBalance,
-    ydContract,
-    connectWallet,
-  } = useWeb3();
+  const { courseContract, address, tokenBalance, setTokenBalance, ydContract } =
+    useWeb3();
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
