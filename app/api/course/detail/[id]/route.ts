@@ -4,10 +4,10 @@ import { fetchApi } from "@/lib/api/fetch";
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+  { params }: { params: Promise<{ id: string }> }
+): Promise<NextResponse> {
   try {
-    const courseId = params.id;
+    const courseId = (await params).id;
 
     const course = await fetchApi<Course>(`course/detail/${courseId}`);
 
