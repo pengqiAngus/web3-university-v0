@@ -1,13 +1,13 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { type Course } from "@/lib/types/index";
 import { fetchApi } from "@/lib/api/fetch";
 
 export async function GET(
-  request: Request,
-  context: { params: { id: string } }
+  request: NextRequest,
+  { params }: { params: { id: string } }
 ) {
   try {
-    const courseId = context.params.id;
+    const courseId = params.id;
 
     const course = await fetchApi<Course>(`course/detail/${courseId}`);
 
