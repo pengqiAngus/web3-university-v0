@@ -72,6 +72,9 @@ export default function CourseDetailPage() {
       if (!courseContract || !address) {
         throw new Error("Please connect your wallet first");
       }
+      if (!course) {
+        throw new Error("Course not found");
+      }
       if (!tokenBalance || Number(tokenBalance) < Number(course.price)) {
         throw new Error("Insufficient token balance to purchase this course");
       }
