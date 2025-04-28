@@ -16,6 +16,7 @@ import { Search, Clock, DollarSign, BookOpen } from "lucide-react";
 import { motion } from "framer-motion";
 import { useCourseList } from "@/lib/hooks/use-course-db";
 import { LoadingScreen } from "@/components/loading/LoadingScreen";
+import Image from "next/image";
 
 export default function CoursesPage() {
   const { data: courses = [], isLoading, error } = useCourseList();
@@ -116,9 +117,12 @@ export default function CoursesPage() {
                   >
                     <Card className="bg-black/40 border border-purple-500/20 backdrop-blur-sm text-white hover:border-purple-500/50 transition-all hover:shadow-lg hover:shadow-purple-500/10 cursor-pointer h-full group">
                       <div className="relative overflow-hidden">
-                        <img
-                          src={course.imgUrl || "/placeholder.svg"}
+                        <Image
+                          src={course.imgUrl}
                           alt={course.name}
+                          width={300}
+                          height={200}
+                          priority
                           className="w-full h-48 object-cover rounded-t-lg transition-transform duration-500 group-hover:scale-105"
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />

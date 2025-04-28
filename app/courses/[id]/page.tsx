@@ -6,22 +6,15 @@ import Navbar from "@/components/navbar";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  Play,
-  Pause,
-  BookOpen,
-  Clock,
-  Users,
-  Award,
-  ChevronRight,
-} from "lucide-react";
+import { Play, Pause, BookOpen, Clock, Award } from "lucide-react";
 import { useWeb3 } from "@/lib/context/web3-context";
 import { motion } from "framer-motion";
 import { useCourseDetail } from "@/lib/hooks/use-course-db";
 import { LoadingScreen } from "@/components/loading/LoadingScreen";
-import { Course } from "@/lib/types/course";
 import { Toaster, toast } from "sonner";
 import ErrorScreen from "@/components/loading/ErrorScreen";
+import Image from "next/image";
+
 export default function CourseDetailPage() {
   const { id } = useParams();
   const { courseContract, address, tokenBalance, setTokenBalance, ydContract } =
@@ -43,6 +36,29 @@ export default function CourseDetailPage() {
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  useEffect(() => {
+    if (courseContract) {
+      // 你的逻辑
+    }
+  }, [courseContract]);
+
+  useEffect(() => {
+    const initUserCourses = async () => {
+      if (courseContract && address && course?.name) {
+        try {
+          const id = await courseContract.web2ToCourseId(course.id);
+          const hasCourse = await courseContract.userCourses(address, id);
+          setHasCourse(hasCourse);
+        } catch (error) {
+          console.error("Error initializing user courses:", error);
+          toast.error("Failed to load your purchased courses");
+        }
+      }
+    };
+
+    initUserCourses();
+  }, [address, course, courseContract]);
 
   if (!course) {
     return (
@@ -71,7 +87,8 @@ export default function CourseDetailPage() {
       if (!course) {
         throw new Error("Course not found");
       }
-      if (!tokenBalance || Number(tokenBalance) < Number(course.price)) {
+      const coursePice = course?.price || 0;
+      if (!tokenBalance || Number(tokenBalance) < Number(coursePice)) {
         throw new Error("Insufficient token balance to purchase this course");
       }
 
@@ -116,24 +133,6 @@ export default function CourseDetailPage() {
       setIsSubmitting(false);
     }
   };
-
-  useEffect(() => {
-    const initUserCourses = async () => {
-      if (courseContract && address) {
-        try {
-          const id = await courseContract.web2ToCourseId(course.id);
-          const hasCourse = await courseContract.userCourses(address, id);
-          setHasCourse(hasCourse);
-        } catch (error) {
-          console.error("Error initializing user courses:", error);
-          toast.error("Failed to load your purchased courses");
-        }
-      }
-    };
-    if (course?.name) {
-      initUserCourses();
-    }
-  }, [address, course]);
 
   const togglePlay = () => {
     if (!hasCourse) {
@@ -361,9 +360,12 @@ export default function CourseDetailPage() {
               <Card className="bg-black/50 border border-purple-500/20 backdrop-blur-sm text-white sticky top-4 shadow-lg shadow-purple-500/5">
                 <CardContent className="p-6">
                   <div className="relative overflow-hidden rounded-lg mb-4 group">
-                    <img
+                    <Image
                       src={course.imgUrl || "/placeholder.svg"}
                       alt={course.name}
+                      width={500}
+                      height={300}
+                      priority
                       className="w-full h-48 object-cover transition-transform duration-700 group-hover:scale-110"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black to-transparent opacity-60" />

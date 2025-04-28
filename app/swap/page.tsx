@@ -27,7 +27,7 @@ export default function SwapPage() {
   const [tokenAmount, setTokenAmount] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isBuying, setIsBuying] = useState(true); // true: ETH -> Token, false: Token -> ETH
-  const [exchangeRate, setExchangeRate] = useState(1000); // 1 ETH = 1000 YDT
+  const [exchangeRate, setExchangeRate] = useState(0);
 
   // 监听输入变化，自动计算兑换金额
   useEffect(() => {
@@ -131,6 +131,10 @@ export default function SwapPage() {
     } else {
       await handleSellTokens();
     }
+  };
+
+  const handleConnect = () => {
+    // 连接钱包逻辑
   };
 
   return (

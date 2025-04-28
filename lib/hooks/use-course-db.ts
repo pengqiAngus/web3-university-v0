@@ -22,7 +22,7 @@ export const useCourseList = () => {
 
 // 获取课程详情
 export const useCourseDetail = (courseId: string) => {
-  return useQuery<Course>({
+  return useQuery<Course | null>({
     queryKey: ["course", courseId],
     queryFn: async () => {
       const res = await fetch(`/api/course/detail/${courseId}`);
