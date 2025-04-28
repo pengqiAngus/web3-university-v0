@@ -21,7 +21,7 @@ export const useCourseList = () => {
 };
 
 // 获取课程详情
-export const useCourseDetail = (courseId: number) => {
+export const useCourseDetail = (courseId: string) => {
   return useQuery<Course>({
     queryKey: ["course", courseId],
     queryFn: async () => {

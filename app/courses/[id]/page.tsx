@@ -33,7 +33,11 @@ export default function CourseDetailPage() {
   const [scrollY, setScrollY] = useState(0);
   const [hasCourse, setHasCourse] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { data: course = {} as Course, isLoading, error } = useCourseDetail(id);
+  const {
+    data: course = {} as Course,
+    isLoading,
+    error,
+  } = useCourseDetail(id as string);
 
   useEffect(() => {
     const handleScroll = () => {
