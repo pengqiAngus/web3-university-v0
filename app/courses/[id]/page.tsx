@@ -21,7 +21,7 @@ import { useCourseDetail } from "@/lib/hooks/use-course-db";
 import { LoadingScreen } from "@/components/loading/LoadingScreen";
 import { Course } from "@/lib/types/course";
 import { Toaster, toast } from "sonner";
-
+import ErrorScreen from "@/components/loading/ErrorScreen";
 export default function CourseDetailPage() {
   const { id } = useParams();
   const { courseContract, address, tokenBalance, setTokenBalance, ydContract } =
