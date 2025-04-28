@@ -33,11 +33,7 @@ export default function CourseDetailPage() {
   const [scrollY, setScrollY] = useState(0);
   const [hasCourse, setHasCourse] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const {
-    data: course = {} as Course,
-    isLoading,
-    error,
-  } = useCourseDetail(id as string);
+  const { data: course, isLoading, error } = useCourseDetail(id as string);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -48,7 +44,7 @@ export default function CourseDetailPage() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  if (!id) {
+  if (!course) {
     return (
       <main className="min-h-screen bg-black relative overflow-hidden">
         <div className="relative z-10">
