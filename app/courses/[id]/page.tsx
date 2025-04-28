@@ -33,7 +33,7 @@ export default function CourseDetailPage() {
   const [scrollY, setScrollY] = useState(0);
   const [hasCourse, setHasCourse] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { data: course = {} as Course, loading, error } = useCourseDetail(id);
+  const { data: course = {} as Course, isLoading, error } = useCourseDetail(id);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -167,7 +167,7 @@ export default function CourseDetailPage() {
 
   const progress = duration ? (currentTime / duration) * 100 : 0;
 
-  return loading ? (
+  return isLoading ? (
     <LoadingScreen
       title="Loading Courses..."
       subtitle="Please wait while we fetch the latest course information"
