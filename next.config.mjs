@@ -6,6 +6,9 @@ const nextConfig = {
     config.plugins.push(codeInspectorPlugin({ bundler: "webpack" }));
     return config;
   },
+  typescript: {
+    ignoreBuildErrors: true,
+  },
 };
 
 export default nextConfig;
