@@ -118,7 +118,7 @@ export default function CoursesPage() {
                     <Card className="bg-black/40 border border-purple-500/20 backdrop-blur-sm text-white hover:border-purple-500/50 transition-all hover:shadow-lg hover:shadow-purple-500/10 cursor-pointer h-full group">
                       <div className="relative overflow-hidden">
                         <Image
-                          src={course.imgUrl}
+                          src={course.imgUrl || "/placeholder.svg"}
                           alt={course.name}
                           width={300}
                           height={200}
