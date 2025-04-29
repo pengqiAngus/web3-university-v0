@@ -36,7 +36,6 @@ import {
 } from "@/components/ui/tooltip";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { fetchApi, uploadFile } from "@/lib/api";
-import Image from "next/image";
 export default function UploadCoursePage() {
   const { address, connectWallet } = useWeb3();
   const router = useRouter();
@@ -493,7 +492,7 @@ export default function UploadCoursePage() {
                         </div>
                       ) : (
                         <div className="relative rounded-lg overflow-hidden border border-purple-500/30">
-                          <Image
+                          <img
                             src={courseImage || "/placeholder.svg"}
                             alt="Course thumbnail preview"
                             className="w-full h-48 object-cover"

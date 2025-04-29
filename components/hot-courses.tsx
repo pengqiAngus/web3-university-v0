@@ -7,10 +7,8 @@ import { motion } from "framer-motion";
 import Link from "next/link";
 import { useCourseList } from "@/lib/hooks/use-course-db";
 import ComponentLoading from "@/components/loading/ComponentLoading";
-import Image from "next/image";
 export default function HotCourses() {
   const { data, isLoading, error } = useCourseList();
-  console.log("isLoading", isLoading);
   const hotCourse = data?.slice(0, 6) || [];
 
   return (
@@ -75,7 +73,7 @@ export default function HotCourses() {
                     <div className="relative z-10">
                       <div className="relative overflow-hidden aspect-[4/3]">
                         <div className="absolute -inset-1 bg-gradient-to-r from-purple-300/10 via-transparent to-purple-300/10 z-0 group-hover:opacity-100 group-hover:animate-pulse transition-opacity blur-xl" />
-                        <Image
+                        <img
                           src={course.imgUrl || "/placeholder.svg"}
                           alt={course.name}
                           className="relative z-10 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 group-hover:rotate-1"
