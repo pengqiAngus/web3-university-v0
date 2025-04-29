@@ -78,7 +78,7 @@ export default function CourseDetailPage() {
     return <ErrorScreen />;
   }
 
-  const buyCourse = async (courseId: string) => {
+  const buyCourse = async () => {
     try {
       setIsSubmitting(true);
       if (!courseContract || !address) {
@@ -399,7 +399,7 @@ export default function CourseDetailPage() {
                   <Button
                     className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 relative overflow-hidden group"
                     onClick={() => {
-                      buyCourse(course.id);
+                      buyCourse();
                     }}
                     disabled={isSubmitting || hasCourse}
                   >

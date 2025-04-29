@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import Navbar from "@/components/navbar";
 import {
@@ -19,7 +19,7 @@ import { LoadingScreen } from "@/components/loading/LoadingScreen";
 import Image from "next/image";
 
 export default function CoursesPage() {
-  const { data: courses = [], isLoading, error } = useCourseList();
+  const { data: courses = [], isLoading } = useCourseList();
   const [searchTerm, setSearchTerm] = useState("");
   const [scrollY, setScrollY] = useState(0);
 

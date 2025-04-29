@@ -28,7 +28,6 @@ export function ConnectWallet() {
     tokenBalance,
     avatarUrl,
     isConnected,
-    isAuthenticated,
     setIsAuthenticated,
   } = useWeb3();
   const [mounted, setMounted] = useState(false);
@@ -59,7 +58,7 @@ export function ConnectWallet() {
         console.error("Login failed:", error);
       }
     }
-  }, [address, isConnected, isAuthenticated, mounted, setIsAuthenticated]);
+  }, [address, isConnected, mounted, setIsAuthenticated]);
 
   useEffect(() => {
     if (!localStorage.getItem("token")) {
