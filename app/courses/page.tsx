@@ -30,7 +30,7 @@ export default function CoursesPage() {
 
   // Animation variants
   const container = {
-    hidden: { opacity: 3 },
+    hidden: { opacity: 1 },
     show: {
       opacity: 1,
       transition: {
