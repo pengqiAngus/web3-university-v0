@@ -1,4 +1,5 @@
 import { FileInfo } from "../types/upload";
+import { fetchApi } from "./fetch";
 
 export interface FileInfoData {
   url: string;
@@ -14,15 +15,12 @@ export function createTempFileUrl(file: File): string {
 export async function uploadFile(file: File): Promise<FileInfo> {
   const formData = new FormData();
   formData.append("file", file);
-
   try {
-    const response = await fetch("/api/upload", {
+    const fileInfo = await fetchApi<FileInfo>("upload", {
       method: "POST",
       body: formData,
     });
-
-    const result = await response.json();
-    return result.data.data.fileInfo as FileInfo;
+    return fileInfo;
   } catch (error) {
     console.error("文件上传失败:", error);
     throw error instanceof Error ? error : new Error("上传失败");

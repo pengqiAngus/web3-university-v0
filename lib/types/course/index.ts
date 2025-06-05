@@ -1,11 +1,6 @@
-interface FileInfo {
-  id?: string;
-  size?: number;
-  title?: string;
-  mimetype?: string;
-}
+import type { FileInfo } from "@/lib/types/upload";
 
-interface Course {
+export interface Course {
   id: string;
   name: string;
   category: string;
@@ -19,5 +14,3 @@ interface Course {
   createdAt: string;
   updatedAt: string;
 }
-
-export type { Course };

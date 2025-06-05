@@ -2,18 +2,18 @@ import { NextRequest, NextResponse } from "next/server";
 import { fetchApi } from "@/lib/api";
 
 export async function POST(request: NextRequest) {
-    try {
+  try {
     const formData = await request.formData();
-    const file = formData.get('file') as File;
+    const file = formData.get("file") as File;
     if (!file) {
       return NextResponse.json(
-        { error: "No file provided" },
+        { code: 400, message: "No file provided", data: null },
         { status: 400 }
       );
     }
 
     const formDataForLambda = new FormData();
-    formDataForLambda.append('file', file);
+    formDataForLambda.append("file", file);
 
     const response = await fetchApi("upload", {
       method: "POST",
@@ -27,7 +27,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error("文件上传失败:", error);
     return NextResponse.json(
-      { error: "File upload failed" },
+      { code: 500, message: "File upload failed", data: null },
       { status: 500 }
     );
   }
